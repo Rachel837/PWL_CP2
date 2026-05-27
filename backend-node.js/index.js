@@ -16,6 +16,10 @@ app.get('/api/test', (req, res) => {
 
 // Import model Barang sebagai contoh endpoint
 const Barang = require('./models/Barang');
+const apiRoutes = require('./routes/api');
+const sequelize = require('./config/database');
+
+app.use('/api', apiRoutes);
 
 app.get('/api/barang', async (req, res) => {
     try {
@@ -29,7 +33,18 @@ app.get('/api/barang', async (req, res) => {
     }
 });
 
-// Jalankan Server
-app.listen(PORT, () => {
-    console.log(`Server Node.js berjalan di http://localhost:${PORT}`);
+const seeder = require('./config/seeder');
+
+// Jalankan Server & Sync Database
+sequelize.sync().then(async () => {
+    console.log('Database terhubung.');
+    
+    // Jalankan Seeder
+    await seeder();
+
+    app.listen(PORT, () => {
+        console.log(`Server Node.js berjalan di http://localhost:${PORT}`);
+    });
+}).catch(err => {
+    console.error('Gagal sync database:', err);
 });
