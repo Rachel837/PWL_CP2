@@ -20,7 +20,16 @@ const DraftPengadaan = sequelize.define('DraftPengadaan', {
     }
 }, {
   tableName: 'draft_pengadaan',
-  timestamps: false 
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: false
 });
+
+// Relationships
+const User = require('./User');
+const DraftPengadaanDetail = require('./DraftPengadaanDetail');
+
+DraftPengadaan.belongsTo(User, { foreignKey: 'users_id', as: 'pengguna' });
+DraftPengadaan.hasMany(DraftPengadaanDetail, { foreignKey: 'draft_pengadaan_id', as: 'details' });
 
 module.exports = DraftPengadaan;

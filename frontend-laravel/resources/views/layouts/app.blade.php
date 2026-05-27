@@ -16,6 +16,9 @@
                         <div class="ml-10 flex items-baseline space-x-4">
                             <a href="/users" class="hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">Pengguna</a>
                             <a href="/ruangan" class="hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">Ruangan</a>
+                            @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
+                                <a href="{{ route('draft-pengadaan.index') }}" class="hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium transition-colors">Draf Pengadaan</a>
+                            @endif
                         </div>
                     </div>
                     <div class="flex items-center">

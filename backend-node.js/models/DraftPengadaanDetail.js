@@ -36,7 +36,14 @@ const DraftPengadaanDetail = sequelize.define('DraftPengadaanDetail', {
     }
 }, {
   tableName: 'draft_pengadaan_detail',
-  timestamps: false 
+  timestamps: false
 });
+
+// Relationships
+const Barang = require('./Barang');
+const Inventaris = require('./Inventaris');
+
+DraftPengadaanDetail.belongsTo(Barang, { foreignKey: 'barang_id', as: 'barang' });
+DraftPengadaanDetail.belongsTo(Inventaris, { foreignKey: 'inventaris_id', as: 'inventaris_lama' });
 
 module.exports = DraftPengadaanDetail;

@@ -23,4 +23,8 @@ const Barang = sequelize.define('Barang', {
   timestamps: false 
 });
 
+// Relationships
+const KategoriBarang = require('./KategoriBarang');
+Barang.belongsTo(KategoriBarang, { foreignKey: 'kategori_barang_id', as: 'kategori' });
+
 module.exports = Barang;

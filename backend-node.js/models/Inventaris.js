@@ -43,4 +43,8 @@ const Inventaris = sequelize.define('Inventaris', {
   timestamps: false 
 });
 
+// Relationships
+const Barang = require('./Barang');
+Inventaris.belongsTo(Barang, { foreignKey: 'barang_id', as: 'barang' });
+
 module.exports = Inventaris;

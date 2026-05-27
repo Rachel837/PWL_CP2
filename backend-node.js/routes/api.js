@@ -5,6 +5,7 @@ const RoleController = require('../controllers/RoleController');
 const UserController = require('../controllers/UserController');
 const RuanganController = require('../controllers/RuanganController');
 const AuthController = require('../controllers/AuthController');
+const DraftPengadaanController = require('../controllers/DraftPengadaanController');
 
 // Auth
 router.post('/login', AuthController.login);
@@ -26,5 +27,23 @@ router.get('/ruangan/:id', RuanganController.getById);
 router.post('/ruangan', RuanganController.create);
 router.put('/ruangan/:id', RuanganController.update);
 router.delete('/ruangan/:id', RuanganController.delete);
+
+// Draft Pengadaan (Procurement Draft)
+router.get('/draft-pengadaan', DraftPengadaanController.getAll);
+router.get('/draft-pengadaan/:id', DraftPengadaanController.getById);
+router.post('/draft-pengadaan', DraftPengadaanController.create);
+router.put('/draft-pengadaan/:id', DraftPengadaanController.updateStatus);
+router.delete('/draft-pengadaan/:id', DraftPengadaanController.delete);
+router.get('/draft-pengadaan/user/:users_id', DraftPengadaanController.getByUser);
+
+// Draft Pengadaan Detail (Procurement Draft Items)
+router.post('/draft-pengadaan-detail', DraftPengadaanController.addDetail);
+router.get('/draft-pengadaan-detail/:draft_pengadaan_id', DraftPengadaanController.getDetails);
+router.put('/draft-pengadaan-detail/:id', DraftPengadaanController.updateDetail);
+router.delete('/draft-pengadaan-detail/:id', DraftPengadaanController.deleteDetail);
+
+// Available Items and Inventories
+router.get('/barang-tersedia', DraftPengadaanController.getAvailableBarang);
+router.get('/inventaris-pengganti/:barang_id', DraftPengadaanController.getReplacementInventaris);
 
 module.exports = router;

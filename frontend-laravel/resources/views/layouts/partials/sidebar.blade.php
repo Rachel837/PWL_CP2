@@ -11,5 +11,8 @@
 
       <li class="px-4 pt-4 pb-2"><small class="nav-text">Main</small></li>
       <li><a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/"><i class="ti ti-home"></i><span class="nav-text">Dashboard</span></a></li>
+      @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
+      <li><a class="nav-link {{ request()->is('draft-pengadaan*') ? 'active' : '' }}" href="{{ route('draft-pengadaan.index') }}"><i class="ti ti-file-text"></i><span class="nav-text">Draf Pengadaan</span></a></li>
+      @endif
     </ul>
 </aside>
