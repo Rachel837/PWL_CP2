@@ -1,44 +1,18 @@
 @extends('layouts.master')
 
-@section('title', 'Draf Pengadaan Barang - InApp Inventory Dashboard')
+@section('title', 'History Pengadaan Barang - InApp Inventory Dashboard')
 
 @section('content')
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="fs-3 mb-0">Draf Pengadaan Barang</h1>
-            <a href="{{ route('draft-pengadaan.create') }}" class="btn btn-primary">
-                <i class="ti ti-plus me-1"></i> Buat Draf Baru
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Status Filter Tabs -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="btn-group" role="group" aria-label="Status Filter">
-            <a href="?status=" class="btn {{ request('status') === null || request('status') === '' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Semua
-            </a>
-            <a href="?status=draft" class="btn {{ request('status') === 'draft' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Draft
-            </a>
-            <a href="?status=submitted" class="btn {{ request('status') === 'submitted' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Diajukan
-            </a>
-            <a href="?status=approved" class="btn {{ request('status') === 'approved' ? 'btn-primary' : 'btn-outline-primary' }}">
-                Disetujui
-            </a>
-            <a href="?status=rejected" class="btn {{ request('status') === 'rejected' ? 'btn-danger' : 'btn-outline-danger' }}">
-                Ditolak
-            </a>
+            <h1 class="fs-3 mb-0">History Pengadaan Barang</h1>
         </div>
     </div>
 </div>
 
 <!-- Draft List -->
-@if(count($draftPengadaans) > 0)
+@if(count($historyDrafts) > 0)
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -54,20 +28,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php
-                            $hasData = false;
-                        @endphp
-                        @foreach($draftPengadaans as $draft)
+                        @foreach($historyDrafts as $draft)
                             @php
-                                $statusFilter = request('status');
-                                if ($statusFilter && $draft['status'] !== $statusFilter) {
-                                    continue;
-                                }
-                                $hasData = true;
                                 $statusClass = match($draft['status'] ?? 'draft') {
                                     'approved', 'finalized', 'disetujui' => 'bg-success',
                                     'submitted', 'reviewed', 'diajukan' => 'bg-info text-dark',
                                     'rejected', 'ditolak' => 'bg-danger',
+                                    'locked' => 'bg-dark',
                                     default => 'bg-secondary'
                                 };
                             @endphp
@@ -87,26 +54,22 @@
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ route('draft-pengadaan.edit', $draft['id']) }}" class="btn btn-sm btn-outline-success" title="Lihat">
+                                        <a href="{{ route('draft-pengadaan.show', $draft['id']) }}" class="btn btn-sm btn-outline-success" title="Lihat Detail">
                                             <i class="ti ti-eye"></i> Lihat
                                         </a>
-                                        <form action="{{ route('draft-pengadaan.destroy', $draft['id']) }}" method="POST" class="mb-0">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Yakin ingin menghapus draf ini?')" class="btn btn-sm btn-outline-danger" title="Hapus">
-                                                <i class="ti ti-trash"></i> Hapus
+                                        @if($draft['status'] !== 'locked')
+                                            <a href="{{ route('draft-pengadaan.edit', $draft['id']) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="ti ti-edit"></i>
+                                            </a>
+                                        @else
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Terkunci (Tidak bisa diedit)">
+                                                <i class="ti ti-lock"></i>
                                             </button>
-                                        </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @endforeach
-                        
-                        @if(!$hasData)
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Tidak ada draf pengadaan yang sesuai dengan filter.</td>
-                            </tr>
-                        @endif
                     </tbody>
                 </table>
             </div>
@@ -117,12 +80,9 @@
         <div class="col-12">
             <div class="card text-center p-5 border-dashed">
                 <div class="card-body">
-                    <i class="ti ti-file-text fs-1 text-muted mb-3 d-block"></i>
-                    <h4 class="fw-bold text-dark mb-2">Belum Ada Draf Pengadaan</h4>
-                    <p class="text-muted mb-4">Mulai buat draf pengadaan barang untuk tahun ini</p>
-                    <a href="{{ route('draft-pengadaan.create') }}" class="btn btn-primary">
-                        Buat Draf Baru
-                    </a>
+                    <i class="ti ti-history fs-1 text-muted mb-3 d-block"></i>
+                    <h4 class="fw-bold text-dark mb-2">Belum Ada History Pengadaan</h4>
+                    <p class="text-muted mb-4">Anda belum pernah mengajukan draf pengadaan barang.</p>
                 </div>
             </div>
         </div>

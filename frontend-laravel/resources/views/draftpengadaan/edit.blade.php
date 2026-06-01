@@ -21,6 +21,11 @@
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body p-4">
                 <h5 class="fw-bold text-dark mb-3">Informasi Draf</h5>
+                @if($draftPengadaan['status'] === 'locked')
+                    <div class="alert alert-warning py-2 mb-3">
+                        <i class="ti ti-lock me-1"></i> Draf ini telah <strong>dikunci</strong> dan tidak dapat diubah lagi.
+                    </div>
+                @endif
                 <form action="{{ route('draft-pengadaan.update', $draftPengadaan['id']) }}" method="POST">
                     @method('PUT')
                     @csrf
@@ -37,6 +42,7 @@
                             placeholder="Contoh: 2026"
                             value="{{ old('tahun', $draftPengadaan['tahun'] ?? '') }}"
                             required
+                            {{ $draftPengadaan['status'] === 'locked' ? 'disabled' : '' }}
                         >
                     </div>
 
@@ -50,6 +56,7 @@
                             name="catatan" 
                             rows="3"
                             placeholder="Catatan tambahan untuk draf pengadaan ini"
+                            {{ $draftPengadaan['status'] === 'locked' ? 'disabled' : '' }}
                         >{{ old('catatan', $draftPengadaan['catatan'] ?? '') }}</textarea>
                     </div>
 
@@ -62,12 +69,7 @@
                         </label>
                     </div>
 
-                    <button 
-                        type="submit" 
-                        class="btn btn-primary px-4"
-                    >
-                        <i class="ti ti-check me-1"></i> Simpan Perubahan
-                    </button>
+
                 </form>
             </div>
         </div>
@@ -172,8 +174,9 @@
                     <button 
                         type="submit" 
                         class="btn btn-success w-100"
+                        {{ $draftPengadaan['status'] === 'locked' ? 'disabled' : '' }}
                     >
-                        <i class="ti ti-plus me-1"></i> Tambah Barang ke Daftar
+                        <i class="ti ti-check me-1"></i> Simpan Perubahan
                     </button>
                 </form>
             </div>
@@ -285,24 +288,28 @@
                                             Rp {{ number_format(($detail['harga_estimasi'] ?? 0) * ($detail['jumlah'] ?? 0), 0, ',', '.') }}
                                         </td>
                                         <td class="px-3 py-3 text-center">
-                                            <button 
-                                                type="button"
-                                                onclick="openEditModal({{ json_encode($detail) }})"
-                                                class="btn btn-sm btn-outline-primary me-1"
-                                            >
-                                                Edit
-                                            </button>
-                                            <form action="{{ route('draft-pengadaan.delete-detail', $detail['id']) }}" method="POST" class="d-inline mb-0">
-                                                @csrf
-                                                @method('DELETE')
+                                            @if($draftPengadaan['status'] !== 'locked')
                                                 <button 
-                                                    type="submit"
-                                                    onclick="return confirm('Yakin ingin menghapus barang ini?')"
-                                                    class="btn btn-sm btn-outline-danger"
+                                                    type="button"
+                                                    onclick="openEditModal({{ json_encode($detail) }})"
+                                                    class="btn btn-sm btn-outline-primary me-1"
                                                 >
-                                                    Hapus
+                                                    Edit
                                                 </button>
-                                            </form>
+                                                <form action="{{ route('draft-pengadaan.delete-detail', $detail['id']) }}" method="POST" class="d-inline mb-0">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button 
+                                                        type="submit"
+                                                        onclick="return confirm('Yakin ingin menghapus barang ini?')"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                    >
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-muted"><i class="ti ti-lock"></i> Terkunci</span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

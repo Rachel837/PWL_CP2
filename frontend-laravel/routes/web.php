@@ -26,6 +26,7 @@ Route::middleware([CheckAuth::class])->group(function () {
     
     // Draft Pengadaan Routes (restricted strictly to kepala laboratorium role)
     Route::middleware([CheckRoleKalab::class])->group(function () {
+        Route::get('draft-pengadaan/history', [DraftPengadaanController::class, 'history'])->name('draft-pengadaan.history');
         Route::resource('draft-pengadaan', DraftPengadaanController::class);
         Route::post('draft-pengadaan/{id}/submit', [DraftPengadaanController::class, 'submit'])->name('draft-pengadaan.submit');
         Route::post('draft-pengadaan/{id}/detail', [DraftPengadaanController::class, 'addDetail'])->name('draft-pengadaan.add-detail');

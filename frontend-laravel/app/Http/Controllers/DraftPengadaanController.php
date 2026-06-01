@@ -37,6 +37,32 @@ class DraftPengadaanController extends Controller
     }
 
     /**
+     * Display a listing of submitted draft pengadaan for history
+     */
+    public function history(Request $request)
+    {
+        try {
+            $userId = session('user.id');
+            
+            // Get draft pengadaan from API
+            $response = Http::get("{$this->apiUrl}/draft-pengadaan/user/{$userId}");
+            
+            if ($response->successful()) {
+                $allDrafts = $response->json('data') ?? [];
+                // Filter only drafts that are not in 'draft' status (i.e. have been submitted at least once)
+                $historyDrafts = array_filter($allDrafts, function($draft) {
+                    return $draft['status'] !== 'draft';
+                });
+                return view('draftpengadaan.history', compact('historyDrafts'));
+            }
+            
+            return back()->with('error', 'Gagal mengambil data history pengadaan');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
      * Show the form for creating a new draft pengadaan
      */
     public function create(Request $request)
@@ -65,6 +91,11 @@ class DraftPengadaanController extends Controller
             $request->validate([
                 'tahun' => 'required|string',
                 'catatan' => 'nullable|string',
+                'barang_id' => 'nullable|numeric',
+                'jumlah' => 'nullable|numeric|min:1',
+                'harga_estimasi' => 'nullable|numeric|min:0',
+                'link_pembelian' => 'nullable|url',
+                'inventaris_id_lama' => 'nullable|numeric',
             ]);
 
             $userId = session('user.id');
@@ -77,6 +108,18 @@ class DraftPengadaanController extends Controller
 
             if ($response->successful()) {
                 $draftPengadaan = $response->json('data');
+                
+                if ($request->filled('barang_id') && $request->filled('jumlah')) {
+                    Http::post("{$this->apiUrl}/draft-pengadaan-detail", [
+                        'draft_pengadaan_id' => $draftPengadaan['id'],
+                        'barang_id' => $request->barang_id,
+                        'jumlah' => $request->jumlah,
+                        'harga_estimasi' => $request->harga_estimasi ?? 0,
+                        'link_pembelian' => $request->link_pembelian,
+                        'inventaris_id_lama' => $request->inventaris_id_lama ?: null,
+                    ]);
+                }
+
                 return redirect()->route('draft-pengadaan.edit', $draftPengadaan['id'])
                     ->with('success', 'Draft pengadaan berhasil dibuat');
             }
