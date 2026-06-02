@@ -20,10 +20,14 @@ class DraftPengadaanController extends Controller
     public function index(Request $request)
     {
         try {
-            $userId = session('user.id');
+            $user = session('user');
             
             // Get draft pengadaan from API
-            $response = Http::get("{$this->apiUrl}/draft-pengadaan/user/{$userId}");
+            if ($user['role'] === 'kepala laboratorium') {
+                $response = Http::get("{$this->apiUrl}/draft-pengadaan/user/{$user['id']}");
+            } else {
+                $response = Http::get("{$this->apiUrl}/draft-pengadaan");
+            }
             
             if ($response->successful()) {
                 $draftPengadaans = $response->json('data') ?? [];

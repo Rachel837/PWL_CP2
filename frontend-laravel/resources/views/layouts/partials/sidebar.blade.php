@@ -5,7 +5,7 @@
       </a>
     </div>
     <ul class="nav flex-column">
-      @if(Session::has('user') && Session::get('user')['role'] !== 'kepala laboratorium')
+      @if(Session::has('user') && Session::get('user')['role'] === 'administrator')
       <li class="px-4 py-2"><small class="nav-text">Data Master</small></li>
       <li><a class="nav-link {{ request()->is('users*') ? 'active' : '' }}" href="{{ route('users.index') }}"><i class="ti ti-users"></i><span class="nav-text">Pengguna</span></a></li>
       <li><a class="nav-link {{ request()->is('ruangan*') ? 'active' : '' }}" href="{{ route('ruangan.index') }}"><i class="ti ti-door"></i><span class="nav-text">Ruangan</span></a></li>
@@ -13,8 +13,11 @@
 
       <li class="px-4 pt-4 pb-2"><small class="nav-text">Main</small></li>
       <li><a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/"><i class="ti ti-home"></i><span class="nav-text">Dashboard</span></a></li>
+      @if(Session::has('user') && (Session::get('user')['role'] === 'kepala laboratorium' || Session::get('user')['role'] === 'ketua program studi'))
+      <li><a class="nav-link {{ request()->is('draft-pengadaan') || request()->is('draft-pengadaan/*') && !request()->is('draft-pengadaan/history') && !request()->is('draft-pengadaan/review*') ? 'active' : '' }}" href="{{ route('draft-pengadaan.index') }}"><i class="ti ti-file-text"></i><span class="nav-text">Draf Pengadaan</span></a></li>
+      @endif
+      
       @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
-      <li><a class="nav-link {{ request()->is('draft-pengadaan') || request()->is('draft-pengadaan/*') && !request()->is('draft-pengadaan/history') ? 'active' : '' }}" href="{{ route('draft-pengadaan.index') }}"><i class="ti ti-file-text"></i><span class="nav-text">Draf Pengadaan</span></a></li>
       <li><a class="nav-link {{ request()->is('draft-pengadaan/history') ? 'active' : '' }}" href="{{ route('draft-pengadaan.history') }}"><i class="ti ti-history"></i><span class="nav-text">History Pengadaan</span></a></li>
       @endif
 

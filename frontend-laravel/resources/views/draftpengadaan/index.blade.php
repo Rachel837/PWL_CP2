@@ -7,9 +7,11 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="fs-3 mb-0">Draf Pengadaan Barang</h1>
+            @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
             <a href="{{ route('draft-pengadaan.create') }}" class="btn btn-primary">
                 <i class="ti ti-plus me-1"></i> Buat Draf Baru
             </a>
+            @endif
         </div>
     </div>
 </div>
@@ -87,6 +89,10 @@
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <div class="d-flex justify-content-center gap-2">
+                                        <a href="{{ route('draft-pengadaan.show', $draft['id']) }}" class="btn btn-sm btn-outline-info" title="Detail">
+                                            <i class="ti ti-info-circle"></i> Detail
+                                        </a>
+                                        @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
                                         <a href="{{ route('draft-pengadaan.edit', $draft['id']) }}" class="btn btn-sm btn-outline-success" title="Lihat">
                                             <i class="ti ti-eye"></i> Lihat
                                         </a>
@@ -97,6 +103,7 @@
                                                 <i class="ti ti-trash"></i> Hapus
                                             </button>
                                         </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -119,10 +126,12 @@
                 <div class="card-body">
                     <i class="ti ti-file-text fs-1 text-muted mb-3 d-block"></i>
                     <h4 class="fw-bold text-dark mb-2">Belum Ada Draf Pengadaan</h4>
-                    <p class="text-muted mb-4">Mulai buat draf pengadaan barang untuk tahun ini</p>
+                    <p class="text-muted mb-4">Belum ada draf pengadaan barang saat ini.</p>
+                    @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
                     <a href="{{ route('draft-pengadaan.create') }}" class="btn btn-primary">
                         Buat Draf Baru
                     </a>
+                    @endif
                 </div>
             </div>
         </div>

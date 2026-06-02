@@ -166,6 +166,7 @@
                     </div>
 
                     <!-- Action Buttons -->
+                    @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
                     <div class="mt-4 d-flex gap-2">
                         @if($draftPengadaan['status'] === 'draft')
                             <a 
@@ -197,16 +198,19 @@
                             </button>
                         </form>
                     </div>
+                    @endif
                 @else
                     <div class="text-center py-5 bg-light rounded border-dashed">
                         <i class="ti ti-package fs-1 text-muted mb-2 d-block"></i>
                         <p class="text-muted mb-3">Belum ada barang yang ditambahkan.</p>
+                        @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
                         <a 
                             href="{{ route('draft-pengadaan.edit', $draftPengadaan['id']) }}"
                             class="btn btn-primary btn-sm"
                         >
                             Tambah Barang
                         </a>
+                        @endif
                     </div>
                 @endif
             </div>
