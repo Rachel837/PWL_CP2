@@ -24,13 +24,13 @@
             <a href="?status=draft" class="btn {{ request('status') === 'draft' ? 'btn-primary' : 'btn-outline-primary' }}">
                 Draft
             </a>
-            <a href="?status=submitted" class="btn {{ request('status') === 'submitted' ? 'btn-primary' : 'btn-outline-primary' }}">
+            <a href="?status=diajukan" class="btn {{ request('status') === 'diajukan' ? 'btn-primary' : 'btn-outline-primary' }}">
                 Diajukan
             </a>
-            <a href="?status=approved" class="btn {{ request('status') === 'approved' ? 'btn-primary' : 'btn-outline-primary' }}">
+            <a href="?status=disetujui" class="btn {{ request('status') === 'disetujui' ? 'btn-primary' : 'btn-outline-primary' }}">
                 Disetujui
             </a>
-            <a href="?status=rejected" class="btn {{ request('status') === 'rejected' ? 'btn-danger' : 'btn-outline-danger' }}">
+            <a href="?status=ditolak" class="btn {{ request('status') === 'ditolak' ? 'btn-danger' : 'btn-outline-danger' }}">
                 Ditolak
             </a>
         </div>
@@ -65,9 +65,9 @@
                                 }
                                 $hasData = true;
                                 $statusClass = match($draft['status'] ?? 'draft') {
-                                    'approved', 'finalized', 'disetujui' => 'bg-success',
-                                    'submitted', 'reviewed', 'diajukan' => 'bg-info text-dark',
-                                    'rejected', 'ditolak' => 'bg-danger',
+                                    'disetujui' => 'bg-success',
+                                    'diajukan' => 'bg-info text-dark',
+                                    'ditolak' => 'bg-danger',
                                     default => 'bg-secondary'
                                 };
                             @endphp

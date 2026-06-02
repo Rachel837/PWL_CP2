@@ -162,7 +162,7 @@ exports.getDetails = async (req, res) => {
 exports.updateDetail = async (req, res) => {
     try {
         const { id } = req.params;
-        const { jumlah, harga_estimasi, link_pembelian, inventaris_id_lama } = req.body;
+        const { jumlah, harga_estimasi, link_pembelian, inventaris_id_lama, status_approval, catatan_kaprodi } = req.body;
         
         const detail = await DraftPengadaanDetail.findByPk(id);
         if (!detail) {
@@ -173,7 +173,9 @@ exports.updateDetail = async (req, res) => {
             jumlah: jumlah || detail.jumlah,
             harga_estimasi: harga_estimasi !== undefined ? harga_estimasi : detail.harga_estimasi,
             link_pembelian: link_pembelian !== undefined ? link_pembelian : detail.link_pembelian,
-            inventaris_id: inventaris_id_lama !== undefined ? inventaris_id_lama : detail.inventaris_id
+            inventaris_id: inventaris_id_lama !== undefined ? inventaris_id_lama : detail.inventaris_id,
+            status_approval: status_approval !== undefined ? status_approval : detail.status_approval,
+            catatan_kaprodi: catatan_kaprodi !== undefined ? catatan_kaprodi : detail.catatan_kaprodi
         });
         
         res.json({ status: 'success', message: 'Detail barang berhasil diupdate', data: detail });

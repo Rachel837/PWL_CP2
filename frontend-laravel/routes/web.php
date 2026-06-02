@@ -9,6 +9,8 @@ use App\Http\Controllers\DraftPengadaanController;
 use App\Http\Middleware\CheckAuth;
 use App\Http\Middleware\CheckRoleKalab;
 
+use App\Http\Middleware\CheckRoleKaprodi;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -24,6 +26,15 @@ Route::middleware([CheckAuth::class])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('ruangan', RuanganController::class);
     
+    // Draft Pengadaan Review Routes (restricted to ketua program studi)
+    // Must be defined BEFORE Route::resource('draft-pengadaan') to prevent 'review' from being caught as an ID
+    Route::middleware([CheckRoleKaprodi::class])->group(function () {
+        Route::get('draft-pengadaan/review', [DraftPengadaanController::class, 'reviewIndex'])->name('draft-pengadaan.review.index');
+        Route::get('draft-pengadaan/review/{id}', [DraftPengadaanController::class, 'reviewShow'])->name('draft-pengadaan.review.show');
+        Route::put('draft-pengadaan/review/{id}/detail/{detailId}', [DraftPengadaanController::class, 'reviewUpdateDetail'])->name('draft-pengadaan.review.update-detail');
+        Route::put('draft-pengadaan/review/{id}/finalize', [DraftPengadaanController::class, 'reviewFinalize'])->name('draft-pengadaan.review.finalize');
+    });
+
     // Draft Pengadaan Routes (restricted strictly to kepala laboratorium role)
     Route::middleware([CheckRoleKalab::class])->group(function () {
         Route::get('draft-pengadaan/history', [DraftPengadaanController::class, 'history'])->name('draft-pengadaan.history');
@@ -35,3 +46,4 @@ Route::middleware([CheckAuth::class])->group(function () {
         Route::get('draft-pengadaan/{barangId}/inventaris', [DraftPengadaanController::class, 'getReplacementInventaris'])->name('draft-pengadaan.inventaris');
     });
 });
+

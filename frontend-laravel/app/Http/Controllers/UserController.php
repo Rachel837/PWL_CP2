@@ -37,7 +37,11 @@ class UserController extends Controller
             'roles_id' => 'required'
         ]);
 
-        Http::post("{$this->apiUrl}/users", $request->all());
+        $response = Http::post("{$this->apiUrl}/users", $request->all());
+
+        if ($response->failed()) {
+            return back()->with('error', $response->json('message') ?? 'Terjadi kesalahan saat menyimpan data')->withInput();
+        }
 
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
@@ -62,7 +66,11 @@ class UserController extends Controller
             'roles_id' => 'required'
         ]);
 
-        Http::put("{$this->apiUrl}/users/{$id}", $request->all());
+        $response = Http::put("{$this->apiUrl}/users/{$id}", $request->all());
+
+        if ($response->failed()) {
+            return back()->with('error', $response->json('message') ?? 'Terjadi kesalahan saat memperbarui data')->withInput();
+        }
 
         return redirect()->route('users.index')->with('success', 'User updated successfully');
     }

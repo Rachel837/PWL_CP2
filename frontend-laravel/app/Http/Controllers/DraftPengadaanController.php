@@ -313,14 +313,120 @@ class DraftPengadaanController extends Controller
     {
         try {
             $response = Http::put("{$this->apiUrl}/draft-pengadaan/{$id}", [
-                'status' => 'submitted',
+                'status' => 'diajukan',
             ]);
 
             if ($response->successful()) {
-                return back()->with('success', 'Draft pengadaan berhasil diajukan untuk approval');
+                return redirect()->route('draft-pengadaan.index')->with('success', 'Draft pengadaan berhasil diajukan untuk direview');
             }
 
             return back()->with('error', 'Gagal mengajukan draft pengadaan');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Display a listing of reviewed drafts for Kaprodi review
+     */
+    public function reviewIndex(Request $request)
+    {
+        $status = $request->input('status', 'diajukan,disetujui,ditolak');
+        
+        try {
+            $response = Http::get("{$this->apiUrl}/draft-pengadaan", [
+                'status' => $status
+            ]);
+            
+            if ($response->successful()) {
+                $draftPengadaans = $response->json('data') ?? [];
+                return view('draftpengadaan.review.index', compact('draftPengadaans'));
+            }
+            
+            return back()->with('error', 'Gagal mengambil data draft pengadaan');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Show the specified draft pengadaan for Kaprodi review
+     */
+    public function reviewShow($id)
+    {
+        try {
+            $response = Http::get("{$this->apiUrl}/draft-pengadaan/{$id}");
+            
+            if (!$response->successful()) {
+                return back()->with('error', 'Draft pengadaan tidak ditemukan');
+            }
+
+            $draftPengadaan = $response->json('data');
+
+            return view('draftpengadaan.review.show', compact('draftPengadaan'));
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Update item detail status (approve/reject) in draft pengadaan
+     */
+    public function reviewUpdateDetail(Request $request, $id, $detailId)
+    {
+        try {
+            $request->validate([
+                'status_approval' => 'required|in:disetujui,ditolak,pending',
+                'catatan_kaprodi' => 'nullable|string',
+            ]);
+
+            $response = Http::put("{$this->apiUrl}/draft-pengadaan-detail/{$detailId}", [
+                'status_approval' => $request->status_approval,
+                'catatan_kaprodi' => $request->catatan_kaprodi,
+            ]);
+
+            if ($response->successful()) {
+                return back()->with('success', 'Status barang berhasil diupdate');
+            }
+
+            return back()->with('error', 'Gagal mengupdate status barang')->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Finalize the draft pengadaan
+     */
+    public function reviewFinalize(Request $request, $id)
+    {
+        try {
+            // Get the draft details to determine final status
+            $draftResponse = Http::get("{$this->apiUrl}/draft-pengadaan/{$id}");
+            if (!$draftResponse->successful()) {
+                return back()->with('error', 'Gagal memuat draf untuk finalisasi');
+            }
+            $draft = $draftResponse->json('data');
+            
+            $hasApproved = false;
+            foreach($draft['details'] ?? [] as $detail) {
+                if ($detail['status_approval'] === 'disetujui') {
+                    $hasApproved = true;
+                    break;
+                }
+            }
+            
+            $finalStatus = $hasApproved ? 'disetujui' : 'ditolak';
+
+            $response = Http::put("{$this->apiUrl}/draft-pengadaan/{$id}", [
+                'status' => $finalStatus,
+            ]);
+
+            if ($response->successful()) {
+                return redirect()->route('draft-pengadaan.review.index')->with('success', 'Draft pengadaan berhasil difinalisasi dengan status: ' . ucfirst($finalStatus));
+            }
+
+            return back()->with('error', 'Gagal memfinalisasi draft pengadaan');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

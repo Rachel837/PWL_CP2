@@ -17,5 +17,9 @@
       <li><a class="nav-link {{ request()->is('draft-pengadaan') || request()->is('draft-pengadaan/*') && !request()->is('draft-pengadaan/history') ? 'active' : '' }}" href="{{ route('draft-pengadaan.index') }}"><i class="ti ti-file-text"></i><span class="nav-text">Draf Pengadaan</span></a></li>
       <li><a class="nav-link {{ request()->is('draft-pengadaan/history') ? 'active' : '' }}" href="{{ route('draft-pengadaan.history') }}"><i class="ti ti-history"></i><span class="nav-text">History Pengadaan</span></a></li>
       @endif
+
+      @if(Session::has('user') && Session::get('user')['role'] === 'ketua program studi')
+      <li><a class="nav-link {{ request()->is('draft-pengadaan/review*') ? 'active' : '' }}" href="{{ route('draft-pengadaan.review.index') }}"><i class="ti ti-clipboard-check"></i><span class="nav-text">Review Pengadaan</span></a></li>
+      @endif
     </ul>
 </aside>

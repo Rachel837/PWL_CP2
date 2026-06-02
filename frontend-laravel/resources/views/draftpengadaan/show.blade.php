@@ -22,8 +22,9 @@
                 <small class="text-muted d-block mb-1">Status</small>
                 @php
                     $statusClass = match($draftPengadaan['status'] ?? 'draft') {
-                        'approved', 'finalized' => 'bg-success text-white',
-                        'submitted', 'reviewed' => 'bg-info text-dark',
+                        'disetujui' => 'bg-success text-white',
+                        'diajukan' => 'bg-info text-dark',
+                        'ditolak' => 'bg-danger text-white',
                         default => 'bg-secondary text-white'
                     };
                 @endphp
@@ -184,25 +185,6 @@
                             </form>
                         @endif
                         
-                        @if(Auth::check() && (Auth::user()->role === 'admin' || Auth::user()->role === 'kepala_lab'))
-                            @if($draftPengadaan['status'] === 'submitted')
-                                <button 
-                                    type="button"
-                                    onclick="openApprovalModal()"
-                                    class="btn btn-success px-4"
-                                >
-                                    <i class="ti ti-check me-1"></i> Setujui
-                                </button>
-                                <button 
-                                    type="button"
-                                    onclick="openRejectModal()"
-                                    class="btn btn-danger px-4"
-                                >
-                                    <i class="ti ti-x me-1"></i> Tolak
-                                </button>
-                            @endif
-                        @endif
-
                         <form action="{{ route('draft-pengadaan.destroy', $draftPengadaan['id']) }}" method="POST" class="d-inline mb-0">
                             @csrf
                             @method('DELETE')
@@ -231,103 +213,4 @@
         </div>
     </div>
 </div>
-
-<!-- Approval Modal -->
-<div id="approvalModal" style="display: none;" class="modal-backdrop-custom fixed-top w-100 h-100" style="background: rgba(0,0,0,0.5); z-index: 1050;">
-    <div class="bg-white rounded p-4 w-100 shadow-lg" style="max-width: 400px; margin: 15% auto;">
-        <h4 class="fw-bold text-dark mb-3 pb-2 border-bottom">Setujui Draf Pengadaan</h4>
-        <p class="text-muted small">Apakah Anda yakin ingin menyetujui draf pengadaan tahunan ini?</p>
-        
-        <div class="d-flex gap-2 mt-4">
-            <button 
-                type="button"
-                onclick="submitApproval()"
-                class="btn btn-success flex-grow-1"
-            >
-                Ya, Setujui
-            </button>
-            <button 
-                type="button"
-                onclick="closeApprovalModal()"
-                class="btn btn-light flex-grow-1"
-            >
-                Batal
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Reject Modal -->
-<div id="rejectModal" style="display: none;" class="modal-backdrop-custom fixed-top w-100 h-100" style="background: rgba(0,0,0,0.5); z-index: 1050;">
-    <div class="bg-white rounded p-4 w-100 shadow-lg" style="max-width: 450px; margin: 12% auto;">
-        <h4 class="fw-bold text-dark mb-3 pb-2 border-bottom">Tolak Draf Pengadaan</h4>
-        
-        <div class="mb-4">
-            <label class="form-label fw-semibold">Alasan Penolakan</label>
-            <textarea 
-                id="rejectReason"
-                class="form-control"
-                rows="4"
-                placeholder="Masukkan alasan penolakan draf pengadaan ini..."
-            ></textarea>
-        </div>
-        
-        <div class="d-flex gap-2">
-            <button 
-                type="button"
-                onclick="submitReject()"
-                class="btn btn-danger flex-grow-1"
-            >
-                Tolak Draf
-            </button>
-            <button 
-                type="button"
-                onclick="closeRejectModal()"
-                class="btn btn-light flex-grow-1"
-            >
-                Batal
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-function openApprovalModal() {
-    const modal = document.getElementById('approvalModal');
-    modal.style.display = 'block';
-    modal.style.position = 'fixed';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-}
-
-function closeApprovalModal() {
-    document.getElementById('approvalModal').style.display = 'none';
-}
-
-function submitApproval() {
-    alert('Draf pengadaan disetujui');
-    closeApprovalModal();
-}
-
-// Rejections
-function openRejectModal() {
-    const modal = document.getElementById('rejectModal');
-    modal.style.display = 'block';
-    modal.style.position = 'fixed';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-}
-
-function closeRejectModal() {
-    document.getElementById('rejectModal').style.display = 'none';
-}
-
-function submitReject() {
-    const reason = document.getElementById('rejectReason').value;
-    if (!reason.trim()) {
-        alert('Silakan masukkan alasan penolakan draf');
-        return;
-    }
-    alert('Draf pengadaan ditolak. Alasan: ' + reason);
-    closeRejectModal();
-}
-</script>
 @endsection
