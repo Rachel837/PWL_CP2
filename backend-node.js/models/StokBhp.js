@@ -11,7 +11,7 @@ const StokBhp = sequelize.define('StokBhp', {
       allowNull: true
     },
     barang_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

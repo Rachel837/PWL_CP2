@@ -3,7 +3,7 @@ const sequelize = require('../config/database');
 
 const MaintenanceBhp = sequelize.define('MaintenanceBhp', {
     bhp_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     jumlah_digunakan: {
@@ -11,11 +11,11 @@ const MaintenanceBhp = sequelize.define('MaintenanceBhp', {
       allowNull: true
     },
     maintenance_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     barang_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

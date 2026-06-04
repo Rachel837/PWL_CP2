@@ -3,7 +3,7 @@ const sequelize = require('../config/database');
 
 const PenerimaanBarang = sequelize.define('PenerimaanBarang', {
     detail_pengadaan_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     tanggal_terima: {
@@ -19,11 +19,11 @@ const PenerimaanBarang = sequelize.define('PenerimaanBarang', {
       allowNull: true
     },
     users_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     draft_pengadaan_detail_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

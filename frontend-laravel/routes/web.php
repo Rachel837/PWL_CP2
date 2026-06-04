@@ -38,11 +38,13 @@ Route::middleware([CheckAuth::class])->group(function () {
     // Draft Pengadaan Routes (restricted strictly to kepala laboratorium role)
     Route::middleware([\App\Http\Middleware\CheckRoleKalabOrKaprodi::class])->group(function () {
         Route::get('draft-pengadaan', [DraftPengadaanController::class, 'index'])->name('draft-pengadaan.index');
-        Route::get('draft-pengadaan/{draft_pengadaan}', [DraftPengadaanController::class, 'show'])->name('draft-pengadaan.show');
+        Route::get('draft-pengadaan/{draft_pengadaan}', [DraftPengadaanController::class, 'show'])
+            ->name('draft-pengadaan.show')
+            ->where('draft_pengadaan', '[0-9]+');
+        Route::get('draft-pengadaan/history', [DraftPengadaanController::class, 'history'])->name('draft-pengadaan.history');
     });
 
     Route::middleware([CheckRoleKalab::class])->group(function () {
-        Route::get('draft-pengadaan/history', [DraftPengadaanController::class, 'history'])->name('draft-pengadaan.history');
         Route::resource('draft-pengadaan', DraftPengadaanController::class)->except(['index', 'show']);
         Route::post('draft-pengadaan/{id}/submit', [DraftPengadaanController::class, 'submit'])->name('draft-pengadaan.submit');
         Route::post('draft-pengadaan/{id}/detail', [DraftPengadaanController::class, 'addDetail'])->name('draft-pengadaan.add-detail');

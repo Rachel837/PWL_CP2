@@ -155,7 +155,7 @@ async function seedData() {
             }
         });
         console.log('Inventaris checked/seeded successfully.');
-        
+
     } catch (error) {
         console.error('Failed to seed data:', error);
     }

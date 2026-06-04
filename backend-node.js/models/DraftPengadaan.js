@@ -15,7 +15,7 @@ const DraftPengadaan = sequelize.define('DraftPengadaan', {
       allowNull: true
     },
     users_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

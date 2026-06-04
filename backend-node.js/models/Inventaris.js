@@ -31,11 +31,11 @@ const Inventaris = sequelize.define('Inventaris', {
       allowNull: true
     },
     barang_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     ruangan_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

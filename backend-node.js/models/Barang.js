@@ -15,7 +15,7 @@ const Barang = sequelize.define('Barang', {
       allowNull: true
     },
     kategori_barang_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

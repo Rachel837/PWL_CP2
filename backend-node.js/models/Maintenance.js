@@ -23,11 +23,11 @@ const Maintenance = sequelize.define('Maintenance', {
       allowNull: true
     },
     inventaris_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     users_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

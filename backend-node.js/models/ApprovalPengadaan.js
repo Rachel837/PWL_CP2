@@ -3,7 +3,7 @@ const sequelize = require('../config/database');
 
 const ApprovalPengadaan = sequelize.define('ApprovalPengadaan', {
     kaprodi_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     tanggal_approval: {
@@ -19,11 +19,11 @@ const ApprovalPengadaan = sequelize.define('ApprovalPengadaan', {
       allowNull: true
     },
     draft_pengadaan_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     users_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

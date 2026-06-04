@@ -30,7 +30,17 @@ class DraftPengadaanController extends Controller
             }
             
             if ($response->successful()) {
-                $draftPengadaans = $response->json('data') ?? [];
+                $allDrafts = $response->json('data') ?? [];
+                
+                // Jika user adalah kalab, hanya tampilkan yang berstatus 'draft'
+                if ($user['role'] === 'kepala laboratorium') {
+                    $draftPengadaans = array_filter($allDrafts, function($draft) {
+                        return $draft['status'] === 'draft';
+                    });
+                } else {
+                    $draftPengadaans = $allDrafts;
+                }
+                
                 return view('draftpengadaan.index', compact('draftPengadaans'));
             }
             
@@ -46,18 +56,32 @@ class DraftPengadaanController extends Controller
     public function history(Request $request)
     {
         try {
-            $userId = session('user.id');
+            $user = session('user');
             
-            // Get draft pengadaan from API
-            $response = Http::get("{$this->apiUrl}/draft-pengadaan/user/{$userId}");
-            
-            if ($response->successful()) {
-                $allDrafts = $response->json('data') ?? [];
-                // Filter only drafts that are not in 'draft' status (i.e. have been submitted at least once)
-                $historyDrafts = array_filter($allDrafts, function($draft) {
-                    return $draft['status'] !== 'draft';
-                });
-                return view('draftpengadaan.history', compact('historyDrafts'));
+            if ($user['role'] === 'ketua program studi') {
+                // Get draft pengadaan from API with status disetujui,ditolak
+                $response = Http::get("{$this->apiUrl}/draft-pengadaan", [
+                    'status' => 'disetujui,ditolak'
+                ]);
+                
+                if ($response->successful()) {
+                    $historyDrafts = $response->json('data') ?? [];
+                    return view('draftpengadaan.history', compact('historyDrafts'));
+                }
+            } else {
+                $userId = $user['id'];
+                
+                // Get draft pengadaan from API for kalab
+                $response = Http::get("{$this->apiUrl}/draft-pengadaan/user/{$userId}");
+                
+                if ($response->successful()) {
+                    $allDrafts = $response->json('data') ?? [];
+                    // Filter only drafts that are not in 'draft' status
+                    $historyDrafts = array_filter($allDrafts, function($draft) {
+                        return $draft['status'] !== 'draft';
+                    });
+                    return view('draftpengadaan.history', compact('historyDrafts'));
+                }
             }
             
             return back()->with('error', 'Gagal mengambil data history pengadaan');
@@ -102,7 +126,7 @@ class DraftPengadaanController extends Controller
                 'inventaris_id_lama' => 'nullable|numeric',
             ]);
 
-            $userId = session('user.id');
+            $userId = session('user')['id'];
 
             $response = Http::post("{$this->apiUrl}/draft-pengadaan", [
                 'tahun' => $request->tahun,
@@ -154,7 +178,7 @@ class DraftPengadaanController extends Controller
             $barang = $barangResponse->successful() ? $barangResponse->json('data') ?? [] : [];
 
             // Check authorization
-            $userId = session('user.id');
+            $userId = session('user')['id'];
             if ($draftPengadaan['users_id'] != $userId) {
                 return back()->with('error', 'Anda tidak memiliki akses ke draft ini');
             }
@@ -262,7 +286,7 @@ class DraftPengadaanController extends Controller
             $draftPengadaan = $response->json('data');
 
             // Check authorization
-            $userId = session('user.id');
+            $userId = session('user')['id'];
             if ($draftPengadaan['users_id'] != $userId) {
                 return back()->with('error', 'Anda tidak memiliki akses ke draft ini');
             }
@@ -335,7 +359,7 @@ class DraftPengadaanController extends Controller
      */
     public function reviewIndex(Request $request)
     {
-        $status = $request->input('status', 'diajukan,disetujui,ditolak');
+        $status = $request->input('status', 'diajukan');
         
         try {
             $response = Http::get("{$this->apiUrl}/draft-pengadaan", [

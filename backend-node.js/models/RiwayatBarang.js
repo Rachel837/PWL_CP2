@@ -14,7 +14,7 @@ const RiwayatBarang = sequelize.define('RiwayatBarang', {
       allowNull: true
     },
     inventaris_id: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: true
     }
 }, {

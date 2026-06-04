@@ -23,15 +23,15 @@ const DraftPengadaanDetail = sequelize.define('DraftPengadaanDetail', {
       allowNull: true
     },
     draft_pengadaan_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     barang_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     },
     inventaris_id: {
-      type: DataTypes.STRING, 
+      type: DataTypes.INTEGER, 
       allowNull: true
     }
 }, {

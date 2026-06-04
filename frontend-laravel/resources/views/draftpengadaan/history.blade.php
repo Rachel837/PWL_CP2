@@ -57,14 +57,16 @@
                                         <a href="{{ route('draft-pengadaan.show', $draft['id']) }}" class="btn btn-sm btn-outline-success" title="Lihat Detail">
                                             <i class="ti ti-eye"></i> Lihat
                                         </a>
-                                        @if($draft['status'] !== 'locked')
-                                            <a href="{{ route('draft-pengadaan.edit', $draft['id']) }}" class="btn btn-sm btn-outline-primary" title="Edit">
-                                                <i class="ti ti-edit"></i>
-                                            </a>
-                                        @else
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Terkunci (Tidak bisa diedit)">
-                                                <i class="ti ti-lock"></i>
-                                            </button>
+                                        @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
+                                            @if($draft['status'] !== 'locked' && $draft['status'] !== 'disetujui' && $draft['status'] !== 'diajukan' && $draft['status'] !== 'ditolak')
+                                                <a href="{{ route('draft-pengadaan.edit', $draft['id']) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="ti ti-edit"></i>
+                                                </a>
+                                            @else
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Tidak bisa diedit">
+                                                    <i class="ti ti-lock"></i>
+                                                </button>
+                                            @endif
                                         @endif
                                     </div>
                                 </td>
