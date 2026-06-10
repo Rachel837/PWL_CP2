@@ -25,21 +25,17 @@ class DraftPengadaanController extends Controller
             // Get draft pengadaan from API
             if ($user['role'] === 'kepala laboratorium') {
                 $response = Http::get("{$this->apiUrl}/draft-pengadaan/user/{$user['id']}");
+            } elseif ($user['role'] === 'staf administrasi') {
+                $response = Http::get("{$this->apiUrl}/draft-pengadaan", [
+                    'status' => 'disetujui'
+                ]);
             } else {
                 $response = Http::get("{$this->apiUrl}/draft-pengadaan");
             }
             
             if ($response->successful()) {
                 $allDrafts = $response->json('data') ?? [];
-                
-                // Jika user adalah kalab, hanya tampilkan yang berstatus 'draft'
-                if ($user['role'] === 'kepala laboratorium') {
-                    $draftPengadaans = array_filter($allDrafts, function($draft) {
-                        return $draft['status'] === 'draft';
-                    });
-                } else {
-                    $draftPengadaans = $allDrafts;
-                }
+                $draftPengadaans = $allDrafts;
                 
                 return view('draftpengadaan.index', compact('draftPengadaans'));
             }
@@ -47,6 +43,31 @@ class DraftPengadaanController extends Controller
             return back()->with('error', 'Gagal mengambil data draft pengadaan');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Display a listing of draft pengadaan khusus untuk penerimaan barang
+     */
+    public function penerimaanIndex(Request $request)
+    {
+        try {
+            // Get draft pengadaan from API that are approved
+            $response = Http::get("{$this->apiUrl}/draft-pengadaan", [
+                'status' => 'disetujui'
+            ]);
+            
+            if ($response->successful()) {
+                $allDrafts = $response->json('data') ?? [];
+                $draftPengadaans = $allDrafts;
+                
+                $isPenerimaan = true;
+                return view('draftpengadaan.index', compact('draftPengadaans', 'isPenerimaan'));
+            }
+            
+            return back()->with('error', 'Gagal mengambil data draft pengadaan');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -59,9 +80,9 @@ class DraftPengadaanController extends Controller
             $user = session('user');
             
             if ($user['role'] === 'ketua program studi') {
-                // Get draft pengadaan from API with status disetujui,ditolak
+                // Get draft pengadaan from API with status disetujui
                 $response = Http::get("{$this->apiUrl}/draft-pengadaan", [
-                    'status' => 'disetujui,ditolak'
+                    'status' => 'disetujui'
                 ]);
                 
                 if ($response->successful()) {
@@ -76,9 +97,9 @@ class DraftPengadaanController extends Controller
                 
                 if ($response->successful()) {
                     $allDrafts = $response->json('data') ?? [];
-                    // Filter only drafts that are not in 'draft' status
+                    // Filter only drafts that are in 'disetujui' status
                     $historyDrafts = array_filter($allDrafts, function($draft) {
-                        return $draft['status'] !== 'draft';
+                        return $draft['status'] === 'disetujui';
                     });
                     return view('draftpengadaan.history', compact('historyDrafts'));
                 }
@@ -287,7 +308,18 @@ class DraftPengadaanController extends Controller
 
             // Check authorization
             $userId = session('user')['id'];
-            if ($draftPengadaan['users_id'] != $userId) {
+            $userRole = session('user')['role'] ?? '';
+            $hasAccess = false;
+
+            if ($draftPengadaan['users_id'] == $userId) {
+                $hasAccess = true;
+            } elseif ($userRole === 'staf administrasi' && $draftPengadaan['status'] === 'disetujui') {
+                $hasAccess = true;
+            } elseif ($userRole === 'ketua program studi') {
+                $hasAccess = true;
+            }
+
+            if (!$hasAccess) {
                 return back()->with('error', 'Anda tidak memiliki akses ke draft ini');
             }
 
@@ -455,6 +487,60 @@ class DraftPengadaanController extends Controller
             }
 
             return back()->with('error', 'Gagal memfinalisasi draft pengadaan');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Tampilkan form penerimaan barang untuk staf administrasi
+     */
+    public function prosesPenerimaan($id)
+    {
+        try {
+            $response = Http::get("{$this->apiUrl}/draft-pengadaan/{$id}");
+            
+            if (!$response->successful()) {
+                return back()->with('error', 'Draft pengadaan tidak ditemukan');
+            }
+
+            $draftPengadaan = $response->json('data');
+
+            // Ambil data ruangan untuk pilihan penempatan
+            $ruanganResponse = Http::get("{$this->apiUrl}/ruangan");
+            $ruangan = $ruanganResponse->successful() ? $ruanganResponse->json('data') ?? [] : [];
+
+            return view('draftpengadaan.terima-barang', compact('draftPengadaan', 'ruangan'));
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Simpan data penerimaan barang ke inventaris
+     */
+    public function storePenerimaan(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'draft_pengadaan_detail_id' => 'required|numeric',
+                'items' => 'required|array|min:1',
+                'items.*.kode_inventaris' => 'nullable|string',
+                'items.*.qr_code' => 'nullable|string',
+                'items.*.tanggal_masuk' => 'nullable|date',
+                'items.*.ruangan_id' => 'nullable|numeric',
+            ]);
+
+            $response = Http::post("{$this->apiUrl}/draft-pengadaan/terima-barang", [
+                'draft_pengadaan_detail_id' => $request->draft_pengadaan_detail_id,
+                'items' => $request->items
+            ]);
+
+            if ($response->successful()) {
+                return back()->with('success', 'Barang berhasil diterima dan dicatat ke inventaris');
+            }
+
+            return back()->with('error', $response->json('message') ?? 'Gagal menerima barang');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

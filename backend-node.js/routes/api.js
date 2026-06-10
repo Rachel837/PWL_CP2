@@ -38,6 +38,7 @@ router.get('/draft-pengadaan/user/:users_id', DraftPengadaanController.getByUser
 
 // Draft Pengadaan Detail (Procurement Draft Items)
 router.post('/draft-pengadaan-detail', DraftPengadaanController.addDetail);
+router.post('/draft-pengadaan/terima-barang', DraftPengadaanController.terimaBarang);
 router.get('/draft-pengadaan-detail/:draft_pengadaan_id', DraftPengadaanController.getDetails);
 router.put('/draft-pengadaan-detail/:id', DraftPengadaanController.updateDetail);
 router.delete('/draft-pengadaan-detail/:id', DraftPengadaanController.deleteDetail);

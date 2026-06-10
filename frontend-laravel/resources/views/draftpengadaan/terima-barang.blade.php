@@ -1,0 +1,257 @@
+@extends('layouts.master')
+
+@section('title', 'Penerimaan Barang - InApp Inventory Dashboard')
+
+@section('content')
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="fs-3 mb-0">Penerimaan Barang (Draf #{{ $draftPengadaan['id'] }})</h1>
+            <a href="{{ route('draft-pengadaan.index') }}" class="btn btn-outline-secondary">
+                <i class="ti ti-arrow-left me-1"></i> Kembali
+            </a>
+        </div>
+    </div>
+</div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    <!-- Draft Detail Header -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="card-title fw-semibold mb-3">Informasi Draf</h5>
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td class="text-muted" width="150">ID Draf</td>
+                            <td class="fw-semibold">#{{ $draftPengadaan['id'] ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Tahun</td>
+                            <td class="fw-semibold">{{ $draftPengadaan['tahun'] ?? '-' }}</td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barang List -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0 text-white">Daftar Barang untuk Diterima</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table text-nowrap mb-0 align-middle table-hover">
+                    <thead class="text-dark fs-4">
+                        <tr class="bg-light">
+                            <th class="border-bottom-0"><h6 class="fw-semibold mb-0">No</h6></th>
+                            <th class="border-bottom-0"><h6 class="fw-semibold mb-0">Barang</h6></th>
+                            <th class="border-bottom-0"><h6 class="fw-semibold mb-0">Kategori</h6></th>
+                            <th class="border-bottom-0 text-center"><h6 class="fw-semibold mb-0">Dipesan</h6></th>
+                            <th class="border-bottom-0 text-center"><h6 class="fw-semibold mb-0">Diterima</h6></th>
+                            <th class="border-bottom-0 text-center"><h6 class="fw-semibold mb-0">Status</h6></th>
+                            <th class="border-bottom-0 text-center"><h6 class="fw-semibold mb-0">Aksi</h6></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($draftPengadaan['details'] ?? [] as $index => $detail)
+                            @php
+                                $dipesan = (int)($detail['jumlah'] ?? 0);
+                                $diterima = (int)($detail['jumlah_diterima'] ?? 0);
+                                $sisa = $dipesan - $diterima;
+                                $isLengkap = $diterima >= $dipesan;
+                            @endphp
+                            <tr>
+                                <td class="px-4 py-3">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="ms-3">
+                                            <h6 class="fw-semibold mb-1">{{ $detail['barang']['nama_barang'] ?? '-' }}</h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">{{ $detail['barang']['kategori']['nama_kategori'] ?? '-' }}</td>
+                                <td class="px-4 py-3 text-center fw-bold">{{ $dipesan }}</td>
+                                <td class="px-4 py-3 text-center text-success fw-bold">{{ $diterima }}</td>
+                                <td class="px-4 py-3 text-center">
+                                    @if($isLengkap)
+                                        <span class="badge bg-success rounded-3 fw-semibold">Lengkap</span>
+                                    @else
+                                        <span class="badge bg-warning rounded-3 fw-semibold">Sisa {{ $sisa }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    @if(!$isLengkap)
+                                        <button type="button" class="btn btn-sm btn-primary" 
+                                            data-bs-toggle="modal" data-bs-target="#terimaModal"
+                                            onclick="setModalData({{ $detail['id'] }}, '{{ addslashes($detail['barang']['nama_barang'] ?? '') }}', {{ $sisa }})">
+                                            <i class="ti ti-download"></i> Terima
+                                        </button>
+                                    @else
+                                        <button class="btn btn-sm btn-secondary" disabled>Selesai</button>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">Tidak ada detail barang</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<!-- Modal Terima Barang -->
+<div class="modal fade" id="terimaModal" tabindex="-1" aria-labelledby="terimaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ route('draft-pengadaan.terima.store', $draftPengadaan['id'] ?? 0) }}" method="POST">
+                @csrf
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title text-white" id="terimaModalLabel">Proses Penerimaan Barang</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="draft_pengadaan_detail_id" id="modal_detail_id">
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-semibold">Barang: <span id="modal_nama_barang" class="text-primary"></span></h6>
+                        <p class="mb-2 text-muted">Sisa barang yang belum diterima: <span id="modal_sisa_barang" class="fw-bold"></span></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="jumlah_terima" class="form-label">Jumlah Diterima Saat Ini</label>
+                      <input type="number" class="form-control" id="jumlah_terima" min="1" value="1" onchange="generateForms()">
+                        <small class="form-text text-muted">Masukkan berapa barang yang datang saat ini untuk melengkapi form inventarisnya.</small>
+                    </div>
+
+                    <hr>
+
+                    <div id="dynamic_forms_container">
+                        <!-- Formulir inventaris akan di-generate di sini oleh JavaScript -->
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan ke Inventaris</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Template form item -->
+<template id="item_form_template">
+    <div class="card border mb-3 form-item-card">
+        <div class="card-header bg-light py-2">
+            <h6 class="mb-0 fw-semibold">Data Inventaris Item #<span class="item_index_label"></span></h6>
+        </div>
+        <div class="card-body py-3">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Kode Inventaris (Label)</label>
+                    <input type="text" class="form-control item_kode" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">QR Code / Barcode</label>
+                    <input type="text" class="form-control item_qr" placeholder="Opsional">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tanggal Masuk</label>
+                    <input type="date" class="form-control item_tanggal" value="{{ date('Y-m-d') }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Penempatan Ruangan</label>
+                    <select class="form-select item_ruangan">
+                        <option value="">-- Pilih Ruangan (Opsional) --</option>
+                        @foreach($ruangan as $r)
+                            <option value="{{ $r['id'] }}">{{ $r['nama_ruangan'] }} ({{ $r['kode_ruangan'] }})</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+@endsection
+
+@section('scripts')
+<script>
+    let currentSisa = 0;
+
+    function setModalData(detailId, namaBarang, sisa) {
+        document.getElementById('modal_detail_id').value = detailId;
+        document.getElementById('modal_nama_barang').innerText = namaBarang;
+        document.getElementById('modal_sisa_barang').innerText = sisa;
+        document.getElementById('jumlah_terima').max = sisa;
+        document.getElementById('jumlah_terima').value = 1;
+        currentSisa = sisa;
+        
+        generateForms();
+    }
+
+    function generateForms() {
+        const container = document.getElementById('dynamic_forms_container');
+        const template = document.getElementById('item_form_template');
+        let count = parseInt(document.getElementById('jumlah_terima').value) || 0;
+        
+        if (count > currentSisa) {
+            count = currentSisa;
+            document.getElementById('jumlah_terima').value = count;
+        }
+
+        if (count < 1) {
+            count = 1;
+            document.getElementById('jumlah_terima').value = 1;
+        }
+
+        container.innerHTML = ''; // Clear existing forms
+        
+        for (let i = 0; i < count; i++) {
+            const clone = template.content.cloneNode(true);
+            
+            // Set index text
+            clone.querySelector('.item_index_label').innerText = (i + 1);
+            
+            // Set name attributes dynamically
+            clone.querySelector('.item_kode').name = `items[${i}][kode_inventaris]`;
+            clone.querySelector('.item_qr').name = `items[${i}][qr_code]`;
+            clone.querySelector('.item_tanggal').name = `items[${i}][tanggal_masuk]`;
+            clone.querySelector('.item_ruangan').name = `items[${i}][ruangan_id]`;
+            
+            container.appendChild(clone);
+        }
+    }
+</script>
+@endsection

@@ -22,7 +22,6 @@
                             <th class="px-4 py-3">Tahun</th>
                             <th class="px-4 py-3">Total Barang</th>
                             <th class="px-4 py-3">Total Estimasi</th>
-                            <th class="px-4 py-3">Dibuat Oleh</th>
                             <th class="px-4 py-3">Status</th>
                             <th class="px-4 py-3 text-center">Aksi</th>
                         </tr>
@@ -46,7 +45,6 @@
                                         return ($detail['harga_estimasi'] ?? 0) * ($detail['jumlah'] ?? 0); 
                                     }, $draft['details'] ?? [])), 0, ',', '.') }}
                                 </td>
-                                <td class="px-4 py-3">{{ $draft['pengguna']['nama'] ?? '-' }}</td>
                                 <td class="px-4 py-3">
                                     <span class="badge {{ $statusClass }}">
                                         {{ ucfirst($draft['status'] ?? 'draft') }}

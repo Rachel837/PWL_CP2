@@ -42,6 +42,9 @@ Route::middleware([CheckAuth::class])->group(function () {
             ->name('draft-pengadaan.show')
             ->where('draft_pengadaan', '[0-9]+');
         Route::get('draft-pengadaan/history', [DraftPengadaanController::class, 'history'])->name('draft-pengadaan.history');
+        Route::get('draft-pengadaan/{id}/terima', [DraftPengadaanController::class, 'prosesPenerimaan'])->name('draft-pengadaan.terima');
+        Route::post('draft-pengadaan/{id}/terima', [DraftPengadaanController::class, 'storePenerimaan'])->name('draft-pengadaan.terima.store');
+        Route::get('penerimaan-barang', [DraftPengadaanController::class, 'penerimaanIndex'])->name('penerimaan-barang.index');
     });
 
     Route::middleware([CheckRoleKalab::class])->group(function () {

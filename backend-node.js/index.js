@@ -36,7 +36,7 @@ app.get('/api/barang', async (req, res) => {
 const seeder = require('./config/seeder');
 
 // Jalankan Server & Sync Database
-sequelize.sync().then(async () => {
+sequelize.sync({ alter: true }).then(async () => {
     console.log('Database terhubung.');
     
     // Jalankan Seeder

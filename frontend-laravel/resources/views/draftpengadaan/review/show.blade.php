@@ -26,10 +26,7 @@
                         <td class="text-muted w-50">Tahun Pengadaan</td>
                         <td class="fw-bold">{{ $draftPengadaan['tahun'] }}</td>
                     </tr>
-                    <tr>
-                        <td class="text-muted">Diajukan Oleh</td>
-                        <td class="fw-bold">{{ $draftPengadaan['pengguna']['nama'] ?? '-' }}</td>
-                    </tr>
+
                     <tr>
                         <td class="text-muted">Tanggal Diajukan</td>
                         <td class="fw-bold">{{ \Carbon\Carbon::parse($draftPengadaan['created_at'])->format('d M Y') }}</td>

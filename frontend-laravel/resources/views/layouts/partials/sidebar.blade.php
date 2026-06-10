@@ -18,10 +18,24 @@
         <li class="px-4 pt-4 pb-2"><small class="nav-text">Main</small></li>
         <li><a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/"><i class="ti ti-home"></i><span
                     class="nav-text">Dashboard</span></a></li>
-        @if(Session::has('user') && (Session::get('user')['role'] === 'kepala laboratorium' || Session::get('user')['role'] === 'ketua program studi'))
-            <li><a class="nav-link {{ request()->is('draft-pengadaan') || request()->is('draft-pengadaan/*') && !request()->is('draft-pengadaan/history') && !request()->is('draft-pengadaan/review*') ? 'active' : '' }}"
-                    href="{{ route('draft-pengadaan.index') }}"><i class="ti ti-file-text"></i><span class="nav-text">Draf
-                        Pengadaan</span></a></li>
+        @if(Session::has('user') && in_array(Session::get('user')['role'], ['kepala laboratorium', 'ketua program studi', 'staf administrasi']))
+            <li>
+                <a class="nav-link {{ (request()->is('draft-pengadaan') || request()->is('draft-pengadaan/*')) && !request()->is('draft-pengadaan/history') && !request()->is('draft-pengadaan/review*') && !request()->is('draft-pengadaan/*/terima') ? 'active' : '' }}"
+                    href="{{ route('draft-pengadaan.index') }}">
+                    <i class="ti ti-file-text"></i>
+                    <span class="nav-text">Draf Pengadaan</span>
+                </a>
+            </li>
+        @endif
+
+        @if(Session::has('user') && Session::get('user')['role'] === 'staf administrasi')
+            <li>
+                <a class="nav-link {{ request()->is('penerimaan-barang') || request()->is('draft-pengadaan/*/terima') ? 'active' : '' }}"
+                    href="{{ route('penerimaan-barang.index') }}">
+                    <i class="ti ti-box"></i>
+                    <span class="nav-text">Penerimaan Barang</span>
+                </a>
+            </li>
         @endif
 
         @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')

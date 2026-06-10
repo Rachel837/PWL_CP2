@@ -37,6 +37,10 @@ const Inventaris = sequelize.define('Inventaris', {
     ruangan_id: {
       type: DataTypes.INTEGER, 
       allowNull: true
+    },
+    draft_pengadaan_detail_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     }
 }, {
   tableName: 'inventaris',

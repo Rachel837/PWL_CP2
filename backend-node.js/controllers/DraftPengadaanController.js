@@ -9,12 +9,40 @@ const { Op } = require('sequelize');
 // Mendapatkan semua draft pengadaan
 exports.getAll = async (req, res) => {
     try {
+        const { status } = req.query;
+        let whereCondition = {};
+        
+        if (status) {
+            // Bisa menerima multiple status, dipisahkan koma (misal: "disetujui,ditolak")
+            const statusArray = status.split(',').map(s => s.trim());
+            whereCondition.status = {
+                [Op.in]: statusArray
+            };
+        }
+
         const data = await DraftPengadaan.findAll({
+            where: whereCondition,
             include: [
                 {
                     model: User,
                     as: 'pengguna',
                     attributes: ['id', 'nama', 'email']
+                },
+                {
+                    model: DraftPengadaanDetail,
+                    as: 'details',
+                    include: [
+                        {
+                            model: Barang,
+                            as: 'barang',
+                            include: [
+                                {
+                                    model: KategoriBarang,
+                                    as: 'kategori'
+                                }
+                            ]
+                        }
+                    ]
                 }
             ],
             order: [['created_at', 'DESC']]
@@ -299,6 +327,11 @@ exports.getByUser = async (req, res) => {
             where: { users_id },
             include: [
                 {
+                    model: User,
+                    as: 'pengguna',
+                    attributes: ['id', 'nama', 'email']
+                },
+                {
                     model: DraftPengadaanDetail,
                     as: 'details',
                     include: [
@@ -319,6 +352,60 @@ exports.getByUser = async (req, res) => {
         });
         
         res.json({ status: 'success', data });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
+// Proses penerimaan barang dan input ke inventaris
+exports.terimaBarang = async (req, res) => {
+    try {
+        const { draft_pengadaan_detail_id, items } = req.body;
+        
+        if (!draft_pengadaan_detail_id || !items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ status: 'error', message: 'Data penerimaan tidak valid' });
+        }
+
+        const detail = await DraftPengadaanDetail.findByPk(draft_pengadaan_detail_id);
+        if (!detail) {
+            return res.status(404).json({ status: 'error', message: 'Detail draf pengadaan tidak ditemukan' });
+        }
+
+        const jumlahBarang = parseInt(detail.jumlah, 10);
+        const jumlahDiterimaSekarang = parseInt(detail.jumlah_diterima || 0, 10);
+        
+        if (jumlahDiterimaSekarang + items.length > jumlahBarang) {
+            return res.status(400).json({ status: 'error', message: 'Jumlah barang yang diterima melebihi jumlah yang dipesan' });
+        }
+
+        // Simpan inventaris
+        const createdInventaris = [];
+        for (const item of items) {
+            const inventaris = await Inventaris.create({
+                kode_inventaris: item.kode_inventaris || null,
+                kondisi: item.kondisi || 'Baik',
+                tanggal_masuk: item.tanggal_masuk || new Date().toISOString().split('T')[0],
+                qr_code: item.qr_code || null,
+                foto_barang: item.foto_barang || null,
+                status_barang: 'aktif',
+                status_inventaris: 'tersedia',
+                barang_id: detail.barang_id,
+                ruangan_id: item.ruangan_id || null,
+                draft_pengadaan_detail_id: detail.id
+            });
+            createdInventaris.push(inventaris);
+        }
+
+        // Update jumlah diterima
+        await detail.update({
+            jumlah_diterima: jumlahDiterimaSekarang + items.length
+        });
+
+        res.status(201).json({ 
+            status: 'success', 
+            message: 'Barang berhasil diterima dan ditambahkan ke inventaris',
+            data: createdInventaris
+        });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
     }

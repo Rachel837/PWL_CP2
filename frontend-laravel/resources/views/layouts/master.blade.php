@@ -58,5 +58,6 @@
       @include('layouts.partials.footer')
     </div>
   </main>
+  @yield('scripts')
 </body>
 </html>

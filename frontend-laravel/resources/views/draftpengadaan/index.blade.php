@@ -17,10 +17,11 @@
     </div>
 
     <!-- Status Filter Tabs -->
+    @if(!Session::has('user') || Session::get('user')['role'] !== 'staf administrasi')
     <div class="row mb-4">
         <div class="col-12">
             <div class="btn-group" role="group" aria-label="Status Filter">
-                <a href="?status="
+                <a href="?status="  
                     class="btn {{ request('status') === null || request('status') === '' ? 'btn-primary' : 'btn-outline-primary' }}">
                     Semua
                 </a>
@@ -43,6 +44,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Draft List -->
     @if(count($draftPengadaans) > 0)
@@ -55,7 +57,6 @@
                                 <th class="px-4 py-3">Tahun</th>
                                 <th class="px-4 py-3">Total Barang</th>
                                 <th class="px-4 py-3">Total Estimasi</th>
-                                <th class="px-4 py-3">Dibuat Oleh</th>
                                 <th class="px-4 py-3">Status</th>
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
@@ -86,7 +87,6 @@
                                     return ($detail['harga_estimasi'] ?? 0) * ($detail['jumlah'] ?? 0);
                                 }, $draft['details'] ?? [])), 0, ',', '.') }}
                                                 </td>
-                                                <td class="px-4 py-3">{{ $draft['pengguna']['nama'] ?? '-' }}</td>
                                                 <td class="px-4 py-3">
                                                     <span class="badge {{ $statusClass }}">
                                                         {{ ucfirst($draft['status'] ?? 'draft') }}
@@ -94,10 +94,17 @@
                                                 </td>
                                                 <td class="px-4 py-3 text-center">
                                                     <div class="d-flex justify-content-center gap-2">
-                                                        <a href="{{ route('draft-pengadaan.show', $draft['id']) }}"
-                                                            class="btn btn-sm btn-outline-info" title="Detail">
-                                                            <i class="ti ti-info-circle"></i> Detail
-                                                        </a>
+                                                        @if(isset($isPenerimaan) && $isPenerimaan)
+                                                            <a href="{{ route('draft-pengadaan.terima', $draft['id']) }}"
+                                                                class="btn btn-sm btn-outline-primary" title="Terima Barang">
+                                                                <i class="ti ti-box"></i> Terima Barang
+                                                            </a>
+                                                        @else
+                                                            <a href="{{ route('draft-pengadaan.show', $draft['id']) }}"
+                                                                class="btn btn-sm btn-outline-info" title="Detail">
+                                                                <i class="ti ti-info-circle"></i> Detail
+                                                            </a>
+                                                        @endif
                                                         @if(Session::has('user') && Session::get('user')['role'] === 'kepala laboratorium')
                                                             <a href="{{ route('draft-pengadaan.edit', $draft['id']) }}"
                                                                 class="btn btn-sm btn-outline-success" title="Lihat">

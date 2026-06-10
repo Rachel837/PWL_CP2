@@ -21,7 +21,6 @@
                             <tr>
                                 <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ID</th>
                                 <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tahun</th>
-                                <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Kepala Lab</th>
                                 <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
                                 <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tanggal Diajukan</th>
                                 <th class="px-4 py-3 text-end text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Aksi</th>
@@ -43,9 +42,6 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     {{ $draft['tahun'] }}
-                                </td>
-                                <td class="px-4 py-3 text-sm">
-                                    {{ $draft['pengguna']['nama'] ?? '-' }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     <span class="badge {{ $statusClass }}">

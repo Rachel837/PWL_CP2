@@ -6,6 +6,11 @@ const DraftPengadaanDetail = sequelize.define('DraftPengadaanDetail', {
       type: DataTypes.STRING, 
       allowNull: true
     },
+    jumlah_diterima: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0
+    },
     harga_estimasi: {
       type: DataTypes.STRING, 
       allowNull: true
