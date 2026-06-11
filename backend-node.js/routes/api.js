@@ -6,6 +6,8 @@ const UserController = require('../controllers/UserController');
 const RuanganController = require('../controllers/RuanganController');
 const AuthController = require('../controllers/AuthController');
 const DraftPengadaanController = require('../controllers/DraftPengadaanController');
+const StokBhpController = require('../controllers/StokBhpController');
+const MaintenanceController = require('../controllers/MaintenanceController');
 
 // Auth
 router.post('/login', AuthController.login);
@@ -46,5 +48,18 @@ router.delete('/draft-pengadaan-detail/:id', DraftPengadaanController.deleteDeta
 // Available Items and Inventories
 router.get('/barang-tersedia', DraftPengadaanController.getAvailableBarang);
 router.get('/inventaris-pengganti/:barang_id', DraftPengadaanController.getReplacementInventaris);
+router.get('/inventaris', MaintenanceController.getInventarisList);
+
+// Stok BHP (Consumables Stock)
+router.get('/stok-bhp', StokBhpController.getAll);
+router.get('/stok-bhp/available-items', StokBhpController.getAvailableBhpItems);
+router.post('/stok-bhp', StokBhpController.create);
+router.put('/stok-bhp/:id', StokBhpController.update);
+router.delete('/stok-bhp/:id', StokBhpController.delete);
+
+// Maintenance
+router.get('/maintenance', MaintenanceController.getAll);
+router.get('/maintenance/:id', MaintenanceController.getById);
+router.post('/maintenance', MaintenanceController.create);
 
 module.exports = router;

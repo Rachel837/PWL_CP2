@@ -24,7 +24,6 @@
                             <tr>
                                 <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Kode Ruangan</th>
                                 <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nama Ruangan</th>
-                                <th class="px-4 py-3 text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Lokasi</th>
                                 <th class="px-4 py-3 text-end text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Aksi</th>
                             </tr>
                         </thead>
@@ -36,9 +35,6 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <h6 class="mb-0 text-sm">{{ $r['nama_ruangan'] }}</h6>
-                                </td>
-                                <td class="px-4 py-3 text-sm">
-                                    {{ $r['lokasi'] }}
                                 </td>
                                 <td class="px-4 py-3 text-end">
                                     <a href="{{ route('ruangan.edit', $r['id']) }}" class="btn btn-sm btn-outline-info me-1">Edit</a>
@@ -53,7 +49,7 @@
 
                             @if(count($ruangan) === 0)
                             <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">Belum ada data ruangan.</td>
+                                <td colspan="3" class="text-center py-4 text-muted">Belum ada data ruangan.</td>
                             </tr>
                             @endif
                         </tbody>

@@ -21,9 +21,9 @@
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body p-4">
                 <h5 class="fw-bold text-dark mb-3">Informasi Draf</h5>
-                @if($draftPengadaan['status'] === 'locked')
+                @if($draftPengadaan['status'] !== 'draft')
                     <div class="alert alert-warning py-2 mb-3">
-                        <i class="ti ti-lock me-1"></i> Draf ini telah <strong>dikunci</strong> dan tidak dapat diubah lagi.
+                        <i class="ti ti-lock me-1"></i> Draf ini telah <strong>diajukan atau difinalisasi</strong> dan tidak dapat diubah lagi.
                     </div>
                 @endif
                 <form action="{{ route('draft-pengadaan.update', $draftPengadaan['id']) }}" method="POST">
@@ -42,7 +42,7 @@
                             placeholder="Contoh: 2026"
                             value="{{ old('tahun', $draftPengadaan['tahun'] ?? '') }}"
                             required
-                            {{ $draftPengadaan['status'] === 'locked' ? 'disabled' : '' }}
+                            {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                         >
                     </div>
 
@@ -56,7 +56,7 @@
                             name="catatan" 
                             rows="3"
                             placeholder="Catatan tambahan untuk draf pengadaan ini"
-                            {{ $draftPengadaan['status'] === 'locked' ? 'disabled' : '' }}
+                            {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                         >{{ old('catatan', $draftPengadaan['catatan'] ?? '') }}</textarea>
                     </div>
 
@@ -94,6 +94,7 @@
                             name="barang_id"
                             required
                             onchange="loadReplacementInventaris(this.value)"
+                            {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                         >
                             <option value="">-- Pilih Barang --</option>
                             @foreach($barang as $item)
@@ -120,6 +121,7 @@
                                 placeholder="1"
                                 min="1"
                                 required
+                                {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                             >
                         </div>
 
@@ -135,6 +137,7 @@
                                 placeholder="0"
                                 min="0"
                                 required
+                                {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                             >
                         </div>
                     </div>
@@ -149,12 +152,13 @@
                             type="url" 
                             name="link_pembelian" 
                             placeholder="https://example.com/product"
+                            {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                         >
                     </div>
 
                     <div class="mb-4">
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="toggleInventaris" onchange="toggleInventarisOptions()">
+                            <input class="form-check-input" type="checkbox" id="toggleInventaris" onchange="toggleInventarisOptions()" {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}>
                             <label class="form-check-label fw-semibold" for="toggleInventaris">
                                 Ganti Barang Inventaris Lama
                             </label>
@@ -164,6 +168,7 @@
                                 class="form-select" 
                                 id="inventaris_id_lama" 
                                 name="inventaris_id_lama"
+                                {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                             >
                                 <option value="">-- Pilih Barang Inventaris --</option>
                             </select>
@@ -174,7 +179,7 @@
                     <button 
                         type="submit" 
                         class="btn btn-success w-100"
-                        {{ $draftPengadaan['status'] === 'locked' ? 'disabled' : '' }}
+                        {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}
                     >
                         <i class="ti ti-check me-1"></i> Simpan Perubahan
                     </button>
@@ -288,7 +293,7 @@
                                             Rp {{ number_format(($detail['harga_estimasi'] ?? 0) * ($detail['jumlah'] ?? 0), 0, ',', '.') }}
                                         </td>
                                         <td class="px-3 py-3 text-center">
-                                            @if($draftPengadaan['status'] !== 'locked')
+                                            @if($draftPengadaan['status'] === 'draft')
                                                 <button 
                                                     type="button"
                                                     onclick="openEditModal({{ json_encode($detail) }})"

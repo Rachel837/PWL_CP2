@@ -43,11 +43,11 @@
                         <label for="roles_id" class="form-label">Role</label>
                         <select name="roles_id" id="roles_id" class="form-select" required>
                             <option value="">Pilih Role...</option>
-                            <option value="1" {{ old('roles_id', $user['roles_id'] ?? '') == 1 ? 'selected' : '' }}>Administrator</option>
-                            <option value="2" {{ old('roles_id', $user['roles_id'] ?? '') == 2 ? 'selected' : '' }}>Kepala Laboratorium</option>
-                            <option value="3" {{ old('roles_id', $user['roles_id'] ?? '') == 3 ? 'selected' : '' }}>Ketua Program Studi</option>
-                            <option value="4" {{ old('roles_id', $user['roles_id'] ?? '') == 4 ? 'selected' : '' }}>Staf Administrasi</option>
-                            <option value="5" {{ old('roles_id', $user['roles_id'] ?? '') == 5 ? 'selected' : '' }}>Staf Laboratorium</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role['id'] }}" {{ old('roles_id', $user['roles_id'] ?? '') == $role['id'] ? 'selected' : '' }}>
+                                    {{ ucwords($role['nama']) }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
 

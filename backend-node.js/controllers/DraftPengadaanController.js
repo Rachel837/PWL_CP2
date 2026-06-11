@@ -133,6 +133,11 @@ exports.addDetail = async (req, res) => {
             return res.status(404).json({ status: 'error', message: 'Draft pengadaan tidak ditemukan' });
         }
         
+        // Cek jika draft pengadaan tidak dalam status draft
+        if (draftExists.status !== 'draft') {
+            return res.status(400).json({ status: 'error', message: 'Draf pengadaan sudah diajukan atau difinalisasi sehingga tidak dapat diubah.' });
+        }
+        
         // Cek apakah barang ada
         const barangExists = await Barang.findByPk(barang_id);
         if (!barangExists) {
@@ -196,6 +201,28 @@ exports.updateDetail = async (req, res) => {
         if (!detail) {
             return res.status(404).json({ status: 'error', message: 'Detail barang tidak ditemukan' });
         }
+
+        const draft = await DraftPengadaan.findByPk(detail.draft_pengadaan_id);
+        if (!draft) {
+            return res.status(404).json({ status: 'error', message: 'Draf pengadaan tidak ditemukan' });
+        }
+
+        // Jika draf sudah difinalisasi (disetujui/ditolak)
+        if (draft.status === 'disetujui' || draft.status === 'ditolak') {
+            return res.status(400).json({ status: 'error', message: 'Draf pengadaan sudah difinalisasi dan tidak dapat diubah lagi.' });
+        }
+
+        // Jika Kaprodi yang melakukan review
+        if (status_approval !== undefined || catatan_kaprodi !== undefined) {
+            if (draft.status !== 'diajukan') {
+                return res.status(400).json({ status: 'error', message: 'Keputusan review hanya dapat diberikan ketika draf berstatus diajukan.' });
+            }
+        } else {
+            // Jika Kalab mengubah data pengajuan barang
+            if (draft.status !== 'draft') {
+                return res.status(400).json({ status: 'error', message: 'Data barang hanya dapat diubah ketika draf masih berstatus draft.' });
+            }
+        }
         
         await detail.update({
             jumlah: jumlah || detail.jumlah,
@@ -222,6 +249,11 @@ exports.deleteDetail = async (req, res) => {
             return res.status(404).json({ status: 'error', message: 'Detail barang tidak ditemukan' });
         }
         
+        const draft = await DraftPengadaan.findByPk(detail.draft_pengadaan_id);
+        if (draft && draft.status !== 'draft') {
+            return res.status(400).json({ status: 'error', message: 'Barang tidak dapat dihapus karena draf sudah diajukan atau difinalisasi.' });
+        }
+
         await detail.destroy();
         res.json({ status: 'success', message: 'Detail barang berhasil dihapus' });
     } catch (error) {
@@ -240,6 +272,21 @@ exports.updateStatus = async (req, res) => {
             return res.status(404).json({ status: 'error', message: 'Draft pengadaan tidak ditemukan' });
         }
         
+        // Jika draf sudah difinalisasi
+        if (draftPengadaan.status === 'disetujui' || draftPengadaan.status === 'ditolak') {
+            return res.status(400).json({ status: 'error', message: 'Draf pengadaan sudah difinalisasi dan tidak dapat diubah lagi.' });
+        }
+
+        // Jika mengubah status
+        if (status && status !== draftPengadaan.status) {
+            if (draftPengadaan.status === 'draft' && status !== 'diajukan') {
+                return res.status(400).json({ status: 'error', message: 'Draf baru hanya dapat diajukan.' });
+            }
+            if (draftPengadaan.status === 'diajukan' && status !== 'disetujui' && status !== 'ditolak') {
+                return res.status(400).json({ status: 'error', message: 'Draf yang diajukan hanya dapat disetujui atau ditolak.' });
+            }
+        }
+
         await draftPengadaan.update({
             status: status || draftPengadaan.status,
             catatan: catatan !== undefined ? catatan : draftPengadaan.catatan
@@ -261,6 +308,11 @@ exports.delete = async (req, res) => {
             return res.status(404).json({ status: 'error', message: 'Draft pengadaan tidak ditemukan' });
         }
         
+        // Draf yang sudah diajukan atau difinalisasi tidak dapat dihapus
+        if (draftPengadaan.status !== 'draft') {
+            return res.status(400).json({ status: 'error', message: 'Draf tidak dapat dihapus karena sudah diajukan atau difinalisasi.' });
+        }
+
         // Hapus semua detail terlebih dahulu
         await DraftPengadaanDetail.destroy({ where: { draft_pengadaan_id: id } });
         

@@ -17,9 +17,9 @@ class AuthController extends Controller
 
     public function showLoginForm()
     {
-        // Jika sudah login, redirect ke halaman users
+        // Jika sudah login, redirect ke halaman dashboard masing-masing role
         if (Session::has('user')) {
-            return redirect()->route('users.index');
+            return redirect()->route('dashboard');
         }
         return view('auth.login');
     }
@@ -40,7 +40,7 @@ class AuthController extends Controller
             if ($response->successful() && $response->json('status') === 'success') {
                 $user = $response->json('data');
                 Session::put('user', $user);
-                return redirect()->route('users.index')->with('success', 'Berhasil login!');
+                return redirect()->route('dashboard')->with('success', 'Berhasil login!');
             }
 
             return back()->withErrors(['email' => $response->json('message') ?? 'Login gagal, periksa email dan password.'])->withInput();

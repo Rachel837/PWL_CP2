@@ -526,14 +526,39 @@ class DraftPengadaanController extends Controller
                 'draft_pengadaan_detail_id' => 'required|numeric',
                 'items' => 'required|array|min:1',
                 'items.*.kode_inventaris' => 'nullable|string',
-                'items.*.qr_code' => 'nullable|string',
+                'items.*.qr_code' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'items.*.tanggal_masuk' => 'nullable|date',
                 'items.*.ruangan_id' => 'nullable|numeric',
             ]);
 
+            $itemsData = [];
+            foreach ($request->input('items', []) as $i => $item) {
+                $qrPath = null;
+                if ($request->hasFile("items.{$i}.qr_code")) {
+                    $file = $request->file("items.{$i}.qr_code");
+                    $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Pastikan direktori tujuan ada
+                    $targetDir = public_path('uploads/qr_codes');
+                    if (!file_exists($targetDir)) {
+                        mkdir($targetDir, 0777, true);
+                    }
+                    
+                    $file->move($targetDir, $filename);
+                    $qrPath = "/uploads/qr_codes/{$filename}";
+                }
+                
+                $itemsData[] = [
+                    'kode_inventaris' => $item['kode_inventaris'] ?? null,
+                    'qr_code' => $qrPath,
+                    'tanggal_masuk' => $item['tanggal_masuk'] ?? null,
+                    'ruangan_id' => $item['ruangan_id'] ?? null,
+                ];
+            }
+
             $response = Http::post("{$this->apiUrl}/draft-pengadaan/terima-barang", [
                 'draft_pengadaan_detail_id' => $request->draft_pengadaan_detail_id,
-                'items' => $request->items
+                'items' => $itemsData
             ]);
 
             if ($response->successful()) {

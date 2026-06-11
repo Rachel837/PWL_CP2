@@ -23,4 +23,12 @@ const MaintenanceBhp = sequelize.define('MaintenanceBhp', {
   timestamps: false 
 });
 
+// Relationships
+const Maintenance = require('./Maintenance');
+const StokBhp = require('./StokBhp');
+const Barang = require('./Barang');
+MaintenanceBhp.belongsTo(Maintenance, { foreignKey: 'maintenance_id', as: 'maintenance' });
+MaintenanceBhp.belongsTo(StokBhp, { foreignKey: 'bhp_id', as: 'stok_bhp' });
+MaintenanceBhp.belongsTo(Barang, { foreignKey: 'barang_id', as: 'barang' });
+
 module.exports = MaintenanceBhp;

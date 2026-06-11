@@ -34,11 +34,6 @@
                         <input type="text" name="nama_ruangan" id="nama_ruangan" class="form-control" value="{{ old('nama_ruangan', $ruangan['nama_ruangan'] ?? '') }}" required>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="lokasi" class="form-label">Lokasi</label>
-                        <input type="text" name="lokasi" id="lokasi" class="form-control" value="{{ old('lokasi', $ruangan['lokasi'] ?? '') }}" required>
-                    </div>
-
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>

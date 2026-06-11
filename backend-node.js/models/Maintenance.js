@@ -35,4 +35,10 @@ const Maintenance = sequelize.define('Maintenance', {
   timestamps: false 
 });
 
+// Relationships
+const Inventaris = require('./Inventaris');
+const User = require('./User');
+Maintenance.belongsTo(Inventaris, { foreignKey: 'inventaris_id', as: 'inventaris' });
+Maintenance.belongsTo(User, { foreignKey: 'users_id', as: 'user' });
+
 module.exports = Maintenance;

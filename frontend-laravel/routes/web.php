@@ -6,13 +6,16 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RuanganController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DraftPengadaanController;
+use App\Http\Controllers\StokBhpController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Middleware\CheckAuth;
 use App\Http\Middleware\CheckRoleKalab;
-
 use App\Http\Middleware\CheckRoleKaprodi;
+use App\Http\Middleware\CheckRoleAdmin;
+use App\Http\Middleware\CheckRoleStafLab;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 
@@ -21,9 +24,35 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Dashboard redirection based on roles
+Route::get('/dashboard', function () {
+    $user = Illuminate\Support\Facades\Session::get('user');
+    if (!$user) {
+        return redirect()->route('login');
+    }
+    
+    switch ($user['role'] ?? '') {
+        case 'administrator':
+            return redirect()->route('users.index');
+        case 'staf laboratorium':
+            return redirect()->route('stok-bhp.index');
+        case 'staf administrasi':
+            return redirect()->route('penerimaan-barang.index');
+        case 'kepala laboratorium':
+            return redirect()->route('draft-pengadaan.index');
+        case 'ketua program studi':
+            return redirect()->route('draft-pengadaan.review.index');
+        default:
+            return redirect('/');
+    }
+})->name('dashboard')->middleware([CheckAuth::class]);
+
 // Protected Routes
 Route::middleware([CheckAuth::class])->group(function () {
-    Route::resource('users', UserController::class);
+    Route::middleware([CheckRoleAdmin::class])->group(function () {
+        Route::resource('users', UserController::class);
+    });
+    
     Route::resource('ruangan', RuanganController::class);
     
     // Draft Pengadaan Review Routes (restricted to ketua program studi)
@@ -54,6 +83,12 @@ Route::middleware([CheckAuth::class])->group(function () {
         Route::put('draft-pengadaan-detail/{detailId}', [DraftPengadaanController::class, 'updateDetail'])->name('draft-pengadaan.update-detail');
         Route::delete('draft-pengadaan-detail/{detailId}', [DraftPengadaanController::class, 'deleteDetail'])->name('draft-pengadaan.delete-detail');
         Route::get('draft-pengadaan/{barangId}/inventaris', [DraftPengadaanController::class, 'getReplacementInventaris'])->name('draft-pengadaan.inventaris');
+    });
+
+    // Staf Laboratorium Routes
+    Route::middleware([CheckRoleStafLab::class])->group(function () {
+        Route::resource('stok-bhp', StokBhpController::class);
+        Route::resource('maintenance', MaintenanceController::class);
     });
 });
 

@@ -15,9 +15,6 @@
                         class="ti ti-door"></i><span class="nav-text">Ruangan</span></a></li>
         @endif
 
-        <li class="px-4 pt-4 pb-2"><small class="nav-text">Main</small></li>
-        <li><a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/"><i class="ti ti-home"></i><span
-                    class="nav-text">Dashboard</span></a></li>
         @if(Session::has('user') && in_array(Session::get('user')['role'], ['kepala laboratorium', 'ketua program studi', 'staf administrasi']))
             <li>
                 <a class="nav-link {{ (request()->is('draft-pengadaan') || request()->is('draft-pengadaan/*')) && !request()->is('draft-pengadaan/history') && !request()->is('draft-pengadaan/review*') && !request()->is('draft-pengadaan/*/terima') ? 'active' : '' }}"
@@ -48,6 +45,22 @@
             <li><a class="nav-link {{ request()->is('draft-pengadaan/review*') ? 'active' : '' }}"
                     href="{{ route('draft-pengadaan.review.index') }}"><i class="ti ti-clipboard-check"></i><span
                         class="nav-text">Review Pengadaan</span></a></li>
+        @endif
+
+        @if(Session::has('user') && Session::get('user')['role'] === 'staf laboratorium')
+            <li class="px-4 py-2"><small class="nav-text">Staf Laboratorium</small></li>
+            <li>
+                <a class="nav-link {{ request()->is('stok-bhp*') ? 'active' : '' }}" href="{{ route('stok-bhp.index') }}">
+                    <i class="ti ti-box"></i>
+                    <span class="nav-text">Kelola Stok BHP</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link {{ request()->is('maintenance*') ? 'active' : '' }}" href="{{ route('maintenance.index') }}">
+                    <i class="ti ti-tool"></i>
+                    <span class="nav-text">Log Maintenance</span>
+                </a>
+            </li>
         @endif
     </ul>
 </aside>

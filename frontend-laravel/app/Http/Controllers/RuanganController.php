@@ -30,8 +30,7 @@ class RuanganController extends Controller
     {
         $request->validate([
             'kode_ruangan' => 'required',
-            'nama_ruangan' => 'required',
-            'lokasi' => 'required'
+            'nama_ruangan' => 'required'
         ]);
 
         Http::post("{$this->apiUrl}/ruangan", $request->all());
@@ -51,8 +50,7 @@ class RuanganController extends Controller
     {
         $request->validate([
             'kode_ruangan' => 'required',
-            'nama_ruangan' => 'required',
-            'lokasi' => 'required'
+            'nama_ruangan' => 'required'
         ]);
 
         Http::put("{$this->apiUrl}/ruangan/{$id}", $request->all());

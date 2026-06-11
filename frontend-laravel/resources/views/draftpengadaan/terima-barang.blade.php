@@ -81,7 +81,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($draftPengadaan['details'] ?? [] as $index => $detail)
+                        @php $no = 1; @endphp
+                        @forelse($draftPengadaan['details'] ?? [] as $detail)
+                            @if(($detail['status_approval'] ?? '') !== 'disetujui')
+                                @continue
+                            @endif
                             @php
                                 $dipesan = (int)($detail['jumlah'] ?? 0);
                                 $diterima = (int)($detail['jumlah_diterima'] ?? 0);
@@ -89,7 +93,7 @@
                                 $isLengkap = $diterima >= $dipesan;
                             @endphp
                             <tr>
-                                <td class="px-4 py-3">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3">{{ $no++ }}</td>
                                 <td class="px-4 py-3">
                                     <div class="d-flex align-items-center">
                                         <div class="ms-3">
@@ -119,11 +123,12 @@
                                     @endif
                                 </td>
                             </tr>
-                        @empty
+                        @endforeach
+                        @if($no === 1)
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">Tidak ada detail barang</td>
+                                <td colspan="7" class="text-center py-4 text-muted">Tidak ada barang yang disetujui untuk diterima.</td>
                             </tr>
-                        @endforelse
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -134,7 +139,7 @@
 <div class="modal fade" id="terimaModal" tabindex="-1" aria-labelledby="terimaModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ route('draft-pengadaan.terima.store', $draftPengadaan['id'] ?? 0) }}" method="POST">
+            <form action="{{ route('draft-pengadaan.terima.store', $draftPengadaan['id'] ?? 0) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title text-white" id="terimaModalLabel">Proses Penerimaan Barang</h5>
@@ -183,8 +188,8 @@
                     <input type="text" class="form-control item_kode" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">QR Code / Barcode</label>
-                    <input type="text" class="form-control item_qr" placeholder="Opsional">
+                    <label class="form-label">Foto QR Code / Barcode</label>
+                    <input type="file" class="form-control item_qr_file" accept="image/*">
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Tanggal Masuk</label>
@@ -246,7 +251,7 @@
             
             // Set name attributes dynamically
             clone.querySelector('.item_kode').name = `items[${i}][kode_inventaris]`;
-            clone.querySelector('.item_qr').name = `items[${i}][qr_code]`;
+            clone.querySelector('.item_qr_file').name = `items[${i}][qr_code]`;
             clone.querySelector('.item_tanggal').name = `items[${i}][tanggal_masuk]`;
             clone.querySelector('.item_ruangan').name = `items[${i}][ruangan_id]`;
             

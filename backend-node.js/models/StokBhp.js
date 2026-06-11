@@ -19,4 +19,8 @@ const StokBhp = sequelize.define('StokBhp', {
   timestamps: false 
 });
 
+// Relationships
+const Barang = require('./Barang');
+StokBhp.belongsTo(Barang, { foreignKey: 'barang_id', as: 'barang' });
+
 module.exports = StokBhp;

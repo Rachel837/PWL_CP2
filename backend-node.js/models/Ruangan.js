@@ -9,10 +9,6 @@ const Ruangan = sequelize.define('Ruangan', {
     nama_ruangan: {
       type: DataTypes.STRING, 
       allowNull: true
-    },
-    lokasi: {
-      type: DataTypes.STRING, 
-      allowNull: true
     }
 }, {
   tableName: 'ruangan',

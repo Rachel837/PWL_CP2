@@ -64,6 +64,63 @@ async function seedData() {
             }
         }
 
+        // Seed Default Kaprodi User for testing
+        const kaprodiRole = await Role.findOne({ where: { nama: 'ketua program studi' } });
+        if (kaprodiRole) {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const [kaprodiUser, created] = await User.findOrCreate({
+                where: { email: 'kaprodi@gmail.com' },
+                defaults: {
+                    nama: 'Ketua Program Studi',
+                    email: 'kaprodi@gmail.com',
+                    password: hashedPassword,
+                    roles_id: kaprodiRole.id,
+                    created_at: new Date()
+                }
+            });
+            if (created) {
+                console.log('Default kaprodi user created: kaprodi@gmail.com / password');
+            }
+        }
+
+        // Seed Default Staf Admin User for testing
+        const stafAdminRole = await Role.findOne({ where: { nama: 'staf administrasi' } });
+        if (stafAdminRole) {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const [stafAdminUser, created] = await User.findOrCreate({
+                where: { email: 'stafadmin@gmail.com' },
+                defaults: {
+                    nama: 'Staf Administrasi',
+                    email: 'stafadmin@gmail.com',
+                    password: hashedPassword,
+                    roles_id: stafAdminRole.id,
+                    created_at: new Date()
+                }
+            });
+            if (created) {
+                console.log('Default staf admin user created: stafadmin@gmail.com / password');
+            }
+        }
+
+        // Seed Default Staf Lab User for testing
+        const stafLabRole = await Role.findOne({ where: { nama: 'staf laboratorium' } });
+        if (stafLabRole) {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const [stafLabUser, created] = await User.findOrCreate({
+                where: { email: 'staflab@gmail.com' },
+                defaults: {
+                    nama: 'Staf Laboratorium',
+                    email: 'staflab@gmail.com',
+                    password: hashedPassword,
+                    roles_id: stafLabRole.id,
+                    created_at: new Date()
+                }
+            });
+            if (created) {
+                console.log('Default staf lab user created: staflab@gmail.com / password');
+            }
+        }
+
         // 3. Seed Kategori Barang
         const [kategoriInventaris] = await KategoriBarang.findOrCreate({
             where: { nama_kategori: 'Inventaris' },
@@ -119,8 +176,7 @@ async function seedData() {
             where: { kode_ruangan: 'LAB-KOM-1' },
             defaults: {
                 kode_ruangan: 'LAB-KOM-1',
-                nama_ruangan: 'Laboratorium Komputer Utama',
-                lokasi: 'Gedung A Lantai 2'
+                nama_ruangan: 'Laboratorium Komputer Utama'
             }
         });
         console.log('Ruangan checked/seeded successfully.');
