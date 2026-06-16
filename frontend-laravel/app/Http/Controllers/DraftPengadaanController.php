@@ -35,9 +35,23 @@ class DraftPengadaanController extends Controller
             
             if ($response->successful()) {
                 $allDrafts = $response->json('data') ?? [];
-                $draftPengadaans = $allDrafts;
                 
-                return view('draftpengadaan.index', compact('draftPengadaans'));
+                // Get unique years from all drafts for the filter dropdown
+                $availableYears = array_unique(array_filter(array_map(function($draft) {
+                    return $draft['tahun'] ?? null;
+                }, $allDrafts)));
+                rsort($availableYears);
+
+                // Filter by tahun
+                $tahun = $request->input('tahun');
+                if ($tahun) {
+                    $allDrafts = array_filter($allDrafts, function($draft) use ($tahun) {
+                        return ($draft['tahun'] ?? '') == $tahun;
+                    });
+                }
+
+                $draftPengadaans = $allDrafts;
+                return view('draftpengadaan.index', compact('draftPengadaans', 'availableYears'));
             }
             
             return back()->with('error', 'Gagal mengambil data draft pengadaan');
@@ -59,10 +73,24 @@ class DraftPengadaanController extends Controller
             
             if ($response->successful()) {
                 $allDrafts = $response->json('data') ?? [];
-                $draftPengadaans = $allDrafts;
                 
+                // Get unique years from all drafts for the filter dropdown
+                $availableYears = array_unique(array_filter(array_map(function($draft) {
+                    return $draft['tahun'] ?? null;
+                }, $allDrafts)));
+                rsort($availableYears);
+
+                // Filter by tahun
+                $tahun = $request->input('tahun');
+                if ($tahun) {
+                    $allDrafts = array_filter($allDrafts, function($draft) use ($tahun) {
+                        return ($draft['tahun'] ?? '') == $tahun;
+                    });
+                }
+
+                $draftPengadaans = $allDrafts;
                 $isPenerimaan = true;
-                return view('draftpengadaan.index', compact('draftPengadaans', 'isPenerimaan'));
+                return view('draftpengadaan.index', compact('draftPengadaans', 'isPenerimaan', 'availableYears'));
             }
             
             return back()->with('error', 'Gagal mengambil data draft pengadaan');
@@ -84,28 +112,35 @@ class DraftPengadaanController extends Controller
                 $response = Http::get("{$this->apiUrl}/draft-pengadaan", [
                     'status' => 'disetujui'
                 ]);
-                
-                if ($response->successful()) {
-                    $historyDrafts = $response->json('data') ?? [];
-                    return view('draftpengadaan.history', compact('historyDrafts'));
-                }
+                $allDrafts = $response->successful() ? ($response->json('data') ?? []) : [];
             } else {
                 $userId = $user['id'];
-                
                 // Get draft pengadaan from API for kalab
                 $response = Http::get("{$this->apiUrl}/draft-pengadaan/user/{$userId}");
-                
+                $allDrafts = [];
                 if ($response->successful()) {
-                    $allDrafts = $response->json('data') ?? [];
-                    // Filter only drafts that are in 'disetujui' status
-                    $historyDrafts = array_filter($allDrafts, function($draft) {
+                    $allDrafts = array_filter($response->json('data') ?? [], function($draft) {
                         return $draft['status'] === 'disetujui';
                     });
-                    return view('draftpengadaan.history', compact('historyDrafts'));
                 }
             }
-            
-            return back()->with('error', 'Gagal mengambil data history pengadaan');
+
+            // Get unique years from all history drafts for dropdown
+            $availableYears = array_unique(array_filter(array_map(function($draft) {
+                return $draft['tahun'] ?? null;
+            }, $allDrafts)));
+            rsort($availableYears);
+
+            // Apply filter
+            $tahun = $request->input('tahun');
+            if ($tahun) {
+                $allDrafts = array_filter($allDrafts, function($draft) use ($tahun) {
+                    return ($draft['tahun'] ?? '') == $tahun;
+                });
+            }
+
+            $historyDrafts = $allDrafts;
+            return view('draftpengadaan.history', compact('historyDrafts', 'availableYears'));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

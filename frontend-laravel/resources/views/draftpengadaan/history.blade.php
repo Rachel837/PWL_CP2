@@ -11,6 +11,40 @@
     </div>
 </div>
 
+<!-- Filters Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-3">
+                <form method="GET" action="{{ request()->url() }}" class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <label for="tahun" class="form-label text-xs fw-bold text-uppercase text-secondary mb-1">Tahun</label>
+                        <select name="tahun" id="tahun" class="form-select">
+                            <option value="">-- Semua Tahun --</option>
+                            @foreach($availableYears ?? [] as $y)
+                                <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>
+                                    Tahun {{ $y }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti ti-search me-1"></i> Filter
+                        </button>
+                        @if(request('tahun'))
+                            <a href="{{ request()->url() }}" class="btn btn-light w-100">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Draft List -->
 @if(count($historyDrafts) > 0)
     <div class="card shadow-sm border-0">

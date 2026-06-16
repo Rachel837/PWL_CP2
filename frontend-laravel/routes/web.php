@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DraftPengadaanController;
 use App\Http\Controllers\StokBhpController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\InventarisController;
 use App\Http\Middleware\CheckAuth;
 use App\Http\Middleware\CheckRoleKalab;
 use App\Http\Middleware\CheckRoleKaprodi;
@@ -85,9 +86,22 @@ Route::middleware([CheckAuth::class])->group(function () {
         Route::get('draft-pengadaan/{barangId}/inventaris', [DraftPengadaanController::class, 'getReplacementInventaris'])->name('draft-pengadaan.inventaris');
     });
 
+    // Inventory Routes
+    Route::get('inventaris', [InventarisController::class, 'index'])->name('inventaris.index');
+    Route::get('inventaris/create', [InventarisController::class, 'create'])->name('inventaris.create');
+    Route::post('inventaris', [InventarisController::class, 'store'])->name('inventaris.store');
+    Route::get('inventaris/{id}/edit', [InventarisController::class, 'edit'])->name('inventaris.edit');
+    Route::put('inventaris/{id}', [InventarisController::class, 'update'])->name('inventaris.update');
+    Route::delete('inventaris/{id}', [InventarisController::class, 'destroy'])->name('inventaris.destroy');
+    Route::get('inventaris/{id}/upload-kondisi', [InventarisController::class, 'showUploadKondisi'])->name('inventaris.upload-kondisi');
+    Route::post('inventaris/{id}/upload-kondisi', [InventarisController::class, 'uploadKondisi'])->name('inventaris.upload-kondisi.store');
+    Route::post('inventaris/{id}/verifikasi', [InventarisController::class, 'verifikasiKondisi'])->name('inventaris.verifikasi');
+
+    Route::get('stok-bhp', [StokBhpController::class, 'index'])->name('stok-bhp.index');
+
     // Staf Laboratorium Routes
     Route::middleware([CheckRoleStafLab::class])->group(function () {
-        Route::resource('stok-bhp', StokBhpController::class);
+        Route::resource('stok-bhp', StokBhpController::class)->except(['index']);
         Route::resource('maintenance', MaintenanceController::class);
     });
 });

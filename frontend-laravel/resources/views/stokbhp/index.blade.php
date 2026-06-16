@@ -10,9 +10,11 @@
                 <h1 class="fs-3 mb-1">Kelola Stok BHP</h1>
                 <p class="text-muted mb-0 text-sm">Kelola kuantitas barang habis pakai laboratorium dan atur batas minimum stok.</p>
             </div>
-            <a href="{{ route('stok-bhp.create') }}" class="btn btn-primary">
-                <i class="ti ti-plus me-1"></i> Tambah Stok BHP
-            </a>
+            @if(Session::has('user') && Session::get('user')['role'] === 'staf laboratorium')
+                <a href="{{ route('stok-bhp.create') }}" class="btn btn-primary">
+                    <i class="ti ti-plus me-1"></i> Tambah Stok BHP
+                </a>
+            @endif
         </div>
     </div>
 </div>
@@ -67,16 +69,20 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-end">
-                                    <a href="{{ route('stok-bhp.edit', $s['id']) }}" class="btn btn-sm btn-outline-info me-1">
-                                        <i class="ti ti-edit"></i> Edit
-                                    </a>
-                                    <form action="{{ route('stok-bhp.destroy', $s['id']) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus pencatatan stok BHP ini?')">
-                                            <i class="ti ti-trash"></i> Hapus
-                                        </button>
-                                    </form>
+                                    @if(Session::has('user') && Session::get('user')['role'] === 'staf laboratorium')
+                                        <a href="{{ route('stok-bhp.edit', $s['id']) }}" class="btn btn-sm btn-outline-info me-1">
+                                            <i class="ti ti-edit"></i> Edit
+                                        </a>
+                                        <form action="{{ route('stok-bhp.destroy', $s['id']) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus pencatatan stok BHP ini?')">
+                                                <i class="ti ti-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-muted text-xs"><i class="ti ti-eye"></i> View Only</span>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach

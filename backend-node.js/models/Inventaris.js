@@ -41,6 +41,19 @@ const Inventaris = sequelize.define('Inventaris', {
     draft_pengadaan_detail_id: {
       type: DataTypes.INTEGER,
       allowNull: true
+    },
+    kondisi_pending: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    foto_pending: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    status_verifikasi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'terverifikasi'
     }
 }, {
   tableName: 'inventaris',
