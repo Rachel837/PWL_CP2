@@ -291,7 +291,7 @@ async function seedData() {
                 ruangan_id: ruanganGudang.id
             }
         });
-        
+
         console.log('Inventaris checked/seeded successfully.');
 
         // Seed Stok BHP
@@ -327,7 +327,7 @@ async function seedData() {
                     catatan: 'Pengadaan awal semester (Disetujui)'
                 }
             });
-            
+
             await DraftPengadaanDetail.findOrCreate({
                 where: { draft_pengadaan_id: draft1.id, barang_id: barang1.id },
                 defaults: {
@@ -366,7 +366,7 @@ async function seedData() {
                     catatan: 'Pengadaan mendesak lab (Diajukan)'
                 }
             });
-            
+
             await DraftPengadaanDetail.findOrCreate({
                 where: { draft_pengadaan_id: draft2.id, barang_id: barang5.id },
                 defaults: {
@@ -376,7 +376,7 @@ async function seedData() {
                     status_approval: 'pending'
                 }
             });
-            
+
             console.log('Draft Pengadaan checked/seeded successfully.');
         }
 
