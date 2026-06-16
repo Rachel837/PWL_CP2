@@ -121,10 +121,16 @@ exports.create = async (req, res) => {
 // Menambahkan detail barang ke draft pengadaan
 exports.addDetail = async (req, res) => {
     try {
-        const { draft_pengadaan_id, barang_id, jumlah, harga_estimasi, link_pembelian, inventaris_id_lama } = req.body;
+        const { draft_pengadaan_id, is_new_barang, barang_id, nama_barang_baru, kategori_barang_id, spesifikasi_baru, satuan_baru, jumlah, harga_estimasi, link_pembelian, inventaris_id_lama } = req.body;
         
-        if (!draft_pengadaan_id || !barang_id || !jumlah) {
-            return res.status(400).json({ status: 'error', message: 'Field yang diperlukan: draft_pengadaan_id, barang_id, jumlah' });
+        if (!draft_pengadaan_id || !jumlah) {
+            return res.status(400).json({ status: 'error', message: 'Field yang diperlukan: draft_pengadaan_id, jumlah' });
+        }
+        if (!is_new_barang && !barang_id) {
+            return res.status(400).json({ status: 'error', message: 'Field yang diperlukan: barang_id' });
+        }
+        if (is_new_barang && !nama_barang_baru) {
+            return res.status(400).json({ status: 'error', message: 'Field yang diperlukan: nama_barang_baru' });
         }
         
         // Cek apakah draft pengadaan ada
@@ -138,20 +144,32 @@ exports.addDetail = async (req, res) => {
             return res.status(400).json({ status: 'error', message: 'Draf pengadaan sudah diajukan atau difinalisasi sehingga tidak dapat diubah.' });
         }
         
-        // Cek apakah barang ada
-        const barangExists = await Barang.findByPk(barang_id);
-        if (!barangExists) {
-            return res.status(404).json({ status: 'error', message: 'Barang tidak ditemukan' });
+        let finalBarangId = barang_id;
+
+        if (is_new_barang) {
+            // Create the new item
+            const newBarang = await Barang.create({
+                nama_barang: nama_barang_baru,
+                kategori_barang_id: kategori_barang_id || null,
+                spesifikasi: spesifikasi_baru || null,
+                satuan: satuan_baru || null
+            });
+            finalBarangId = newBarang.id;
+        } else {
+            // Cek apakah barang ada
+            const barangExists = await Barang.findByPk(finalBarangId);
+            if (!barangExists) {
+                return res.status(404).json({ status: 'error', message: 'Barang tidak ditemukan' });
+            }
         }
         
         const data = await DraftPengadaanDetail.create({
             draft_pengadaan_id,
-            barang_id,
+            barang_id: finalBarangId,
             jumlah,
             harga_estimasi: harga_estimasi || 0,
             link_pembelian: link_pembelian || '',
-            status_approval: 'pending',
-            inventaris_id: inventaris_id_lama || null
+            inventaris_id_lama: inventaris_id_lama || null
         });
         
         res.status(201).json({ status: 'success', message: 'Detail barang berhasil ditambahkan', data });
@@ -412,7 +430,7 @@ exports.getByUser = async (req, res) => {
 // Proses penerimaan barang dan input ke inventaris
 exports.terimaBarang = async (req, res) => {
     try {
-        const { draft_pengadaan_detail_id, items } = req.body;
+        const { draft_pengadaan_detail_id, items, is_bhp } = req.body;
         
         if (!draft_pengadaan_detail_id || !items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ status: 'error', message: 'Data penerimaan tidak valid' });
@@ -430,14 +448,42 @@ exports.terimaBarang = async (req, res) => {
             return res.status(400).json({ status: 'error', message: 'Jumlah barang yang diterima melebihi jumlah yang dipesan' });
         }
 
+        // Auto-generate kode_inventaris INV/YYYY/XXX
+        const currentYear = new Date().getFullYear();
+        const lastInventaris = await Inventaris.findOne({
+            where: {
+                kode_inventaris: {
+                    [Op.like]: `INV/${currentYear}/%`
+                }
+            },
+            order: [['id', 'DESC']]
+        });
+
+        let nextSeq = 1;
+        if (lastInventaris && lastInventaris.kode_inventaris) {
+            const parts = lastInventaris.kode_inventaris.split('/');
+            // Expecting INV/2024/001 -> parts[2] = 001
+            if (parts.length >= 3) {
+                const lastSeq = parseInt(parts[parts.length - 1], 10);
+                if (!isNaN(lastSeq)) {
+                    nextSeq = lastSeq + 1;
+                }
+            }
+        }
+
         // Simpan inventaris
+        const crypto = require('crypto');
         const createdInventaris = [];
         for (const item of items) {
+            const generatedKode = `INV/${currentYear}/${String(nextSeq).padStart(3, '0')}`;
+            nextSeq++;
+
             const inventaris = await Inventaris.create({
-                kode_inventaris: item.kode_inventaris || null,
+                kode_inventaris: generatedKode,
                 kondisi: item.kondisi || 'Baik',
                 tanggal_masuk: item.tanggal_masuk || new Date().toISOString().split('T')[0],
-                qr_code: item.qr_code || null,
+                qr_code: item.qr_code || crypto.randomUUID(),
+                qr_code_kampus: item.qr_code_kampus || null,
                 foto_barang: item.foto_barang || null,
                 status_barang: 'aktif',
                 status_inventaris: 'tersedia',
@@ -446,6 +492,26 @@ exports.terimaBarang = async (req, res) => {
                 draft_pengadaan_detail_id: detail.id
             });
             createdInventaris.push(inventaris);
+        }
+
+        // Update Stok BHP jika dicentang
+        if (is_bhp) {
+            const StokBhp = require('../models/StokBhp');
+            const [stok, created] = await StokBhp.findOrCreate({
+                where: { barang_id: detail.barang_id },
+                defaults: {
+                    jumlah_stok: String(items.length),
+                    minimal_stok: '10', // Default stok minimal
+                    barang_id: detail.barang_id
+                }
+            });
+            
+            if (!created) {
+                const currentStok = parseInt(stok.jumlah_stok || '0', 10);
+                await stok.update({
+                    jumlah_stok: String(currentStok + items.length)
+                });
+            }
         }
 
         // Update jumlah diterima
@@ -458,6 +524,18 @@ exports.terimaBarang = async (req, res) => {
             message: 'Barang berhasil diterima dan ditambahkan ke inventaris',
             data: createdInventaris
         });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
+// Mendapatkan daftar kategori barang
+exports.getCategories = async (req, res) => {
+    try {
+        const data = await KategoriBarang.findAll({
+            order: [['nama_kategori', 'ASC']]
+        });
+        res.json({ status: 'success', data });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
     }

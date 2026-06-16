@@ -21,7 +21,7 @@
     <div class="col-12 col-lg-8">
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body p-4">
-                <form id="maintenanceForm" action="{{ route('maintenance.store') }}" method="POST">
+                <form id="maintenanceForm" action="{{ route('maintenance.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     <!-- 1. Pilihan Inventaris -->
@@ -36,6 +36,13 @@
                             @endforeach
                         </select>
                         <div class="form-text text-xs mt-1">Hanya barang yang terdaftar di ruangan yang dapat dipilih.</div>
+                    </div>
+
+                    <!-- Foto Kondisi Sebelum -->
+                    <div class="mb-3">
+                        <label for="foto_before" class="form-label fw-semibold">Foto Kondisi Sebelum <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="foto_before" name="foto_before" accept="image/*" required>
+                        <div class="form-text">Unggah foto bukti sebelum perbaikan dilakukan (Format: JPG/PNG, Maks: 2MB).</div>
                     </div>
 
                     <div class="row">
@@ -56,6 +63,13 @@
                                 <option value="rusak berat" {{ old('kondisi_sesudah') == 'rusak berat' ? 'selected' : '' }}>Rusak Berat</option>
                             </select>
                         </div>
+                    </div>
+
+                    <!-- Foto Kondisi Setelah -->
+                    <div class="mb-3">
+                        <label for="foto_after" class="form-label fw-semibold">Foto Kondisi Setelah <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="foto_after" name="foto_after" accept="image/*" required>
+                        <div class="form-text">Unggah foto bukti sesudah perbaikan dilakukan (Format: JPG/PNG, Maks: 2MB).</div>
                     </div>
 
                     <!-- 4. Tindakan -->

@@ -18,6 +18,10 @@ const Inventaris = sequelize.define('Inventaris', {
       type: DataTypes.STRING, 
       allowNull: true
     },
+    qr_code_kampus: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     foto_barang: {
       type: DataTypes.STRING, 
       allowNull: true

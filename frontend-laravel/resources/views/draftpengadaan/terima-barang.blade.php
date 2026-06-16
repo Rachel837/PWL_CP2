@@ -159,6 +159,12 @@
                         <small class="form-text text-muted">Masukkan berapa barang yang datang saat ini untuk melengkapi form inventarisnya.</small>
                     </div>
 
+                    <div class="mb-3 form-check bg-light p-3 rounded border">
+                        <input type="checkbox" class="form-check-input ms-1" id="is_bhp" name="is_bhp" value="1">
+                        <label class="form-check-label ms-2 fw-semibold text-dark" for="is_bhp">Barang ini termasuk BHP (Bahan Habis Pakai)</label>
+                        <small class="d-block ms-2 text-muted mt-1">Jika dicentang, stok barang ini akan otomatis ditambahkan ke tabel Stok BHP.</small>
+                    </div>
+
                     <hr>
 
                     <div id="dynamic_forms_container">
@@ -183,12 +189,26 @@
         </div>
         <div class="card-body py-3">
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Kode Inventaris (Label)</label>
-                    <input type="text" class="form-control item_kode" required>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label text-primary fw-semibold"><i class="ti ti-qrcode me-1"></i>QR Code Sistem (Otomatis)</label>
+                    <div class="d-flex align-items-center gap-3 bg-primary-subtle p-2 rounded border border-primary-subtle">
+                        <div class="bg-white p-1 rounded shadow-sm" style="width: 70px; height: 70px;">
+                            <img src="" class="item_qr_img w-100 h-100 object-fit-contain" alt="QR Code">
+                        </div>
+                        <div class="flex-grow-1">
+                            <span class="text-muted text-xs d-block mb-1">Dapat ditempel pada barang:</span>
+                            <span class="item_qr_uuid fw-bold text-dark font-monospace text-sm"></span>
+                            <input type="hidden" class="item_qr_hidden" value="">
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="printQR(this)" title="Cetak QR Code ini">
+                                <i class="ti ti-printer"></i> Cetak
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Foto QR Code / Barcode</label>
+                    <label class="form-label">Foto QR Code / Barcode (Kampus)</label>
                     <input type="file" class="form-control item_qr_file" accept="image/*">
                 </div>
                 <div class="col-md-6 mb-3">
@@ -249,14 +269,57 @@
             // Set index text
             clone.querySelector('.item_index_label').innerText = (i + 1);
             
+            // Generate UUID and render QR Code
+            let uuid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            
+            clone.querySelector('.item_qr_img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(uuid);
+            clone.querySelector('.item_qr_uuid').innerText = uuid;
+            clone.querySelector('.item_qr_hidden').value = uuid;
+            clone.querySelector('.item_qr_hidden').name = `items[${i}][qr_code]`;
+            
             // Set name attributes dynamically
-            clone.querySelector('.item_kode').name = `items[${i}][kode_inventaris]`;
-            clone.querySelector('.item_qr_file').name = `items[${i}][qr_code]`;
+            clone.querySelector('.item_qr_file').name = `items[${i}][qr_code_kampus]`;
             clone.querySelector('.item_tanggal').name = `items[${i}][tanggal_masuk]`;
             clone.querySelector('.item_ruangan').name = `items[${i}][ruangan_id]`;
             
             container.appendChild(clone);
         }
+    }
+
+    function printQR(btn) {
+        const container = btn.closest('.d-flex');
+        const imgSrc = container.querySelector('.item_qr_img').src;
+        const uuid = container.querySelector('.item_qr_uuid').innerText;
+        const itemName = document.getElementById('modal_nama_barang').innerText;
+        
+        const printWindow = window.open('', '_blank', 'width=400,height=500');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Cetak QR Code</title>
+                    <style>
+                        body { font-family: sans-serif; text-align: center; padding: 30px; margin: 0; }
+                        .qr-container { border: 2px dashed #000; padding: 20px; display: inline-block; border-radius: 8px; }
+                        img { width: 150px; height: 150px; }
+                        h4 { margin: 10px 0 5px 0; font-size: 16px; font-weight: bold; }
+                        p { margin: 0; font-size: 11px; color: #333; word-break: break-all; width: 150px; }
+                        .system-label { font-size: 10px; color: #666; margin-top: 10px; border-top: 1px solid #eee; padding-top: 5px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="qr-container">
+                        <h4>${itemName}</h4>
+                        <img src="${imgSrc}" onload="setTimeout(() => { window.print(); window.close(); }, 500);" />
+                        <p>${uuid}</p>
+                        <div class="system-label">InApp Inventory System</div>
+                    </div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
     }
 </script>
 @endsection

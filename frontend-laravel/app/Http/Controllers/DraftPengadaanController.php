@@ -160,7 +160,11 @@ class DraftPengadaanController extends Controller
                 $barang = $barangResponse->json('data') ?? [];
             }
             
-            return view('draftpengadaan.create', compact('barang'));
+            // Get categories
+            $kategoriResponse = Http::get("{$this->apiUrl}/kategori-barang");
+            $kategoriBarang = $kategoriResponse->successful() ? $kategoriResponse->json('data') ?? [] : [];
+            
+            return view('draftpengadaan.create', compact('barang', 'kategoriBarang'));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -172,15 +176,26 @@ class DraftPengadaanController extends Controller
     public function store(Request $request)
     {
         try {
-            $request->validate([
-                'tahun' => 'required|string',
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'tahun' => 'required|integer|min:' . date('Y'),
                 'catatan' => 'nullable|string',
+                'is_new_barang' => 'nullable|boolean',
                 'barang_id' => 'nullable|numeric',
+                'nama_barang_baru' => 'nullable|string',
+                'kategori_barang_id' => 'nullable|numeric',
+                'spesifikasi_baru' => 'nullable|string',
+                'satuan_baru' => 'nullable|string',
                 'jumlah' => 'nullable|numeric|min:1',
                 'harga_estimasi' => 'nullable|numeric|min:0',
                 'link_pembelian' => 'nullable|url',
                 'inventaris_id_lama' => 'nullable|numeric',
+            ], [
+                'tahun.min' => 'Tahun tidak bisa berada di tahun sebelumnya (minimal ' . date('Y') . ').'
             ]);
+
+            if ($validator->fails()) {
+                return back()->with('error', $validator->errors()->first())->withInput();
+            }
 
             $userId = session('user')['id'];
 
@@ -193,10 +208,19 @@ class DraftPengadaanController extends Controller
             if ($response->successful()) {
                 $draftPengadaan = $response->json('data');
                 
-                if ($request->filled('barang_id') && $request->filled('jumlah')) {
+                $isNew = $request->boolean('is_new_barang');
+                $hasBarangId = $request->filled('barang_id');
+                $hasNewBarangData = $request->filled('nama_barang_baru');
+                
+                if (($hasBarangId || ($isNew && $hasNewBarangData)) && $request->filled('jumlah')) {
                     Http::post("{$this->apiUrl}/draft-pengadaan-detail", [
                         'draft_pengadaan_id' => $draftPengadaan['id'],
+                        'is_new_barang' => $isNew,
                         'barang_id' => $request->barang_id,
+                        'nama_barang_baru' => $request->nama_barang_baru,
+                        'kategori_barang_id' => $request->kategori_barang_id,
+                        'spesifikasi_baru' => $request->spesifikasi_baru,
+                        'satuan_baru' => $request->satuan_baru,
                         'jumlah' => $request->jumlah,
                         'harga_estimasi' => $request->harga_estimasi ?? 0,
                         'link_pembelian' => $request->link_pembelian,
@@ -233,13 +257,17 @@ class DraftPengadaanController extends Controller
             $barangResponse = Http::get("{$this->apiUrl}/barang-tersedia");
             $barang = $barangResponse->successful() ? $barangResponse->json('data') ?? [] : [];
 
+            // Get categories
+            $kategoriResponse = Http::get("{$this->apiUrl}/kategori-barang");
+            $kategoriBarang = $kategoriResponse->successful() ? $kategoriResponse->json('data') ?? [] : [];
+
             // Check authorization
             $userId = session('user')['id'];
             if ($draftPengadaan['users_id'] != $userId) {
                 return back()->with('error', 'Anda tidak memiliki akses ke draft ini');
             }
 
-            return view('draftpengadaan.edit', compact('draftPengadaan', 'barang'));
+            return view('draftpengadaan.edit', compact('draftPengadaan', 'barang', 'kategoriBarang'));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -253,16 +281,34 @@ class DraftPengadaanController extends Controller
         try {
             $request->validate([
                 'draft_pengadaan_id' => 'required|numeric',
-                'barang_id' => 'required|numeric',
+                'is_new_barang' => 'nullable|boolean',
+                'barang_id' => 'nullable|numeric',
+                'nama_barang_baru' => 'nullable|string',
+                'kategori_barang_id' => 'nullable|numeric',
+                'spesifikasi_baru' => 'nullable|string',
+                'satuan_baru' => 'nullable|string',
                 'jumlah' => 'required|numeric|min:1',
                 'harga_estimasi' => 'required|numeric|min:0',
                 'link_pembelian' => 'nullable|url',
                 'inventaris_id_lama' => 'nullable|numeric',
             ]);
 
+            $isNew = $request->boolean('is_new_barang');
+            if (!$isNew && empty($request->barang_id)) {
+                return back()->with('error', 'Barang harus dipilih!')->withInput();
+            }
+            if ($isNew && empty($request->nama_barang_baru)) {
+                return back()->with('error', 'Nama barang baru harus diisi!')->withInput();
+            }
+
             $response = Http::post("{$this->apiUrl}/draft-pengadaan-detail", [
                 'draft_pengadaan_id' => $request->draft_pengadaan_id,
+                'is_new_barang' => $isNew,
                 'barang_id' => $request->barang_id,
+                'nama_barang_baru' => $request->nama_barang_baru,
+                'kategori_barang_id' => $request->kategori_barang_id,
+                'spesifikasi_baru' => $request->spesifikasi_baru,
+                'satuan_baru' => $request->satuan_baru,
                 'jumlah' => $request->jumlah,
                 'harga_estimasi' => $request->harga_estimasi,
                 'link_pembelian' => $request->link_pembelian,
@@ -559,9 +605,10 @@ class DraftPengadaanController extends Controller
         try {
             $request->validate([
                 'draft_pengadaan_detail_id' => 'required|numeric',
+                'is_bhp' => 'nullable|boolean',
                 'items' => 'required|array|min:1',
-                'items.*.kode_inventaris' => 'nullable|string',
-                'items.*.qr_code' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'items.*.qr_code' => 'required|string',
+                'items.*.qr_code_kampus' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'items.*.tanggal_masuk' => 'nullable|date',
                 'items.*.ruangan_id' => 'nullable|numeric',
             ]);
@@ -569,8 +616,8 @@ class DraftPengadaanController extends Controller
             $itemsData = [];
             foreach ($request->input('items', []) as $i => $item) {
                 $qrPath = null;
-                if ($request->hasFile("items.{$i}.qr_code")) {
-                    $file = $request->file("items.{$i}.qr_code");
+                if ($request->hasFile("items.{$i}.qr_code_kampus")) {
+                    $file = $request->file("items.{$i}.qr_code_kampus");
                     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                     
                     // Pastikan direktori tujuan ada
@@ -584,8 +631,8 @@ class DraftPengadaanController extends Controller
                 }
                 
                 $itemsData[] = [
-                    'kode_inventaris' => $item['kode_inventaris'] ?? null,
-                    'qr_code' => $qrPath,
+                    'qr_code' => $item['qr_code'] ?? null,
+                    'qr_code_kampus' => $qrPath,
                     'tanggal_masuk' => $item['tanggal_masuk'] ?? null,
                     'ruangan_id' => $item['ruangan_id'] ?? null,
                 ];
@@ -593,6 +640,7 @@ class DraftPengadaanController extends Controller
 
             $response = Http::post("{$this->apiUrl}/draft-pengadaan/terima-barang", [
                 'draft_pengadaan_detail_id' => $request->draft_pengadaan_detail_id,
+                'is_bhp' => $request->boolean('is_bhp'),
                 'items' => $itemsData
             ]);
 

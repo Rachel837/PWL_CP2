@@ -45,11 +45,25 @@
 
                 <div class="row p-3 bg-light rounded mb-4">
                     <div class="col-6 text-center border-end">
-                        <span class="text-xs text-secondary text-uppercase d-block mb-1">Kondisi Sebelum</span>
+                        <span class="text-xs text-secondary text-uppercase d-block mb-2">Kondisi Sebelum</span>
+                        @if(!empty($maintenance['foto_before']))
+                            <img src="{{ asset($maintenance['foto_before']) }}" alt="Foto Sebelum" class="img-fluid rounded mb-2 shadow-sm" style="max-height: 200px; object-fit: cover;">
+                        @else
+                            <div class="bg-white rounded mb-2 d-flex align-items-center justify-content-center border" style="height: 150px;">
+                                <span class="text-muted text-sm">Tidak ada foto</span>
+                            </div>
+                        @endif
                         <span class="badge bg-warning text-dark px-3 py-2 text-sm">{{ strtoupper($maintenance['kondisi_sebelum']) }}</span>
                     </div>
                     <div class="col-6 text-center">
-                        <span class="text-xs text-secondary text-uppercase d-block mb-1">Kondisi Sesudah</span>
+                        <span class="text-xs text-secondary text-uppercase d-block mb-2">Kondisi Sesudah</span>
+                        @if(!empty($maintenance['foto_after']))
+                            <img src="{{ asset($maintenance['foto_after']) }}" alt="Foto Sesudah" class="img-fluid rounded mb-2 shadow-sm" style="max-height: 200px; object-fit: cover;">
+                        @else
+                            <div class="bg-white rounded mb-2 d-flex align-items-center justify-content-center border" style="height: 150px;">
+                                <span class="text-muted text-sm">Tidak ada foto</span>
+                            </div>
+                        @endif
                         <span class="badge bg-success px-3 py-2 text-sm">{{ strtoupper($maintenance['kondisi_sesudah']) }}</span>
                     </div>
                 </div>

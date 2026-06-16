@@ -15,8 +15,23 @@ class MaintenanceController extends Controller
         $this->apiUrl = env('API_URL', 'http://localhost:5000/api');
     }
 
+    private function checkRoles(array $allowedRoles)
+    {
+        $user = Session::get('user');
+        if (!$user) {
+            abort(401, 'Silakan login terlebih dahulu.');
+        }
+
+        if (!in_array($user['role'] ?? '', $allowedRoles)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk halaman ini.');
+        }
+
+        return $user;
+    }
+
     public function index()
     {
+        $this->checkRoles(['staf administrasi', 'staf laboratorium']);
         $response = Http::get("{$this->apiUrl}/maintenance");
         $maintenances = $response->json('data') ?? [];
         return view('maintenance.index', compact('maintenances'));
@@ -24,6 +39,7 @@ class MaintenanceController extends Controller
 
     public function create()
     {
+        $this->checkRoles(['staf laboratorium']);
         // Ambil data inventaris aktif
         $inventarisResponse = Http::get("{$this->apiUrl}/inventaris");
         $inventarisList = $inventarisResponse->json('data') ?? [];
@@ -37,11 +53,14 @@ class MaintenanceController extends Controller
 
     public function store(Request $request)
     {
+        $this->checkRoles(['staf laboratorium']);
         $request->validate([
             'inventaris_id' => 'required|numeric',
             'kondisi_sesudah' => 'required|string',
             'tindakan' => 'nullable|string',
             'catatan' => 'nullable|string',
+            'foto_before' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto_after' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'bhps' => 'nullable|array',
             'bhps.*.bhp_id' => 'required_with:bhps|numeric',
             'bhps.*.jumlah_digunakan' => 'required_with:bhps|numeric|min:1',
@@ -63,6 +82,21 @@ class MaintenanceController extends Controller
             'users_id' => $user['id'],
             'bhps' => []
         ];
+
+        // Handle file uploads
+        if ($request->hasFile('foto_before')) {
+            $fileBefore = $request->file('foto_before');
+            $filenameBefore = 'maint_before_' . time() . '_' . uniqid() . '.' . $fileBefore->getClientOriginalExtension();
+            $fileBefore->move(public_path('uploads/maintenance'), $filenameBefore);
+            $payload['foto_before'] = 'uploads/maintenance/' . $filenameBefore;
+        }
+
+        if ($request->hasFile('foto_after')) {
+            $fileAfter = $request->file('foto_after');
+            $filenameAfter = 'maint_after_' . time() . '_' . uniqid() . '.' . $fileAfter->getClientOriginalExtension();
+            $fileAfter->move(public_path('uploads/maintenance'), $filenameAfter);
+            $payload['foto_after'] = 'uploads/maintenance/' . $filenameAfter;
+        }
 
         // Filter BHP jika ada yang digunakan
         if ($request->has('bhps')) {
@@ -87,6 +121,7 @@ class MaintenanceController extends Controller
 
     public function show($id)
     {
+        $this->checkRoles(['staf administrasi', 'staf laboratorium']);
         $response = Http::get("{$this->apiUrl}/maintenance/{$id}");
         
         if ($response->failed()) {

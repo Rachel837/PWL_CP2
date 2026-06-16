@@ -47,6 +47,7 @@ router.put('/draft-pengadaan-detail/:id', DraftPengadaanController.updateDetail)
 router.delete('/draft-pengadaan-detail/:id', DraftPengadaanController.deleteDetail);
 
 // Available Items and Inventories
+router.get('/kategori-barang', DraftPengadaanController.getCategories);
 router.get('/barang-tersedia', DraftPengadaanController.getAvailableBarang);
 router.get('/inventaris-pengganti/:barang_id', DraftPengadaanController.getReplacementInventaris);
 router.get('/inventaris', InventarisController.getAll);

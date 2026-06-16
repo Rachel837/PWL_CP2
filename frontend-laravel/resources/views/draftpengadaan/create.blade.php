@@ -29,14 +29,23 @@
                             Tahun Pengadaan <span class="text-danger">*</span>
                         </label>
                         <input 
-                            class="form-control" 
+                            class="form-control @error('tahun') is-invalid @enderror" 
                             id="tahun" 
-                            type="text" 
+                            type="number" 
                             name="tahun" 
-                            placeholder="Contoh: 2026"
-                            value="{{ old('tahun') }}"
+                            placeholder="Contoh: {{ date('Y') }}"
+                            value="{{ old('tahun', date('Y')) }}"
+                            min="{{ date('Y') }}"
                             required
                         >
+                        <div id="tahunErrorMsg" class="text-danger mt-1 fw-medium" style="display: none; font-size: 0.875em;">
+                            <i class="ti ti-alert-circle me-1"></i>Tahun tidak bisa berada di tahun sebelumnya (minimal {{ date('Y') }}).
+                        </div>
+                        @error('tahun')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
 
                     <div class="mb-3">
@@ -66,7 +75,19 @@
                 <div class="card-body p-4">
                     <h5 class="fw-bold text-dark mb-3">Tambah Barang ke Draf</h5>
                     
-                    <div class="mb-3">
+                    <div class="mb-4 pb-3 border-bottom">
+                        <label class="form-label fw-semibold d-block">Sumber Barang</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="is_new_barang" id="radioBarangAda" value="0" checked onchange="toggleBarangSource()">
+                            <label class="form-check-label" for="radioBarangAda">Pilih Barang Tersedia</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="is_new_barang" id="radioBarangBaru" value="1" onchange="toggleBarangSource()">
+                            <label class="form-check-label" for="radioBarangBaru">Input Barang Baru</label>
+                        </div>
+                    </div>
+
+                    <div id="divBarangAda" class="mb-3">
                         <label class="form-label fw-semibold" for="barang_id">
                             Pilih Barang (Opsional)
                         </label>
@@ -87,6 +108,33 @@
                             @endforeach
                         </select>
                         <small class="text-muted block mt-1">Anda bisa langsung menambahkan satu barang pertama Anda sekarang, atau membiarkannya kosong dan menambahkannya nanti.</small>
+                    </div>
+
+                    <div id="divBarangBaru" class="mb-3 p-3 bg-light rounded border" style="display: none;">
+                        <h6 class="fw-bold mb-3">Detail Barang Baru</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="nama_barang_baru">Nama Barang Baru <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nama_barang_baru" name="nama_barang_baru" placeholder="Contoh: Router WiFi">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="kategori_barang_id">Kategori <span class="text-danger">*</span></label>
+                                <select class="form-select" id="kategori_barang_id" name="kategori_barang_id">
+                                    <option value="">-- Pilih Kategori --</option>
+                                    @foreach($kategoriBarang as $kat)
+                                        <option value="{{ $kat['id'] }}">{{ $kat['nama_kategori'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="spesifikasi_baru">Spesifikasi <span class="text-muted fw-normal">(Opsional)</span></label>
+                                <input type="text" class="form-control" id="spesifikasi_baru" name="spesifikasi_baru" placeholder="Contoh: 5GHz, WiFi 6">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="satuan_baru">Satuan <span class="text-muted fw-normal">(Opsional)</span></label>
+                                <input type="text" class="form-control" id="satuan_baru" name="satuan_baru" placeholder="Contoh: Unit, Buah">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -201,6 +249,22 @@
 </form>
 
 <script>
+function toggleBarangSource() {
+    const isNew = document.getElementById('radioBarangBaru').checked;
+    const divBarangAda = document.getElementById('divBarangAda');
+    const divBarangBaru = document.getElementById('divBarangBaru');
+    
+    if (isNew) {
+        divBarangAda.style.display = 'none';
+        divBarangBaru.style.display = 'block';
+        // Reset old barang
+        document.getElementById('barang_id').value = "";
+    } else {
+        divBarangAda.style.display = 'block';
+        divBarangBaru.style.display = 'none';
+    }
+}
+
 function toggleInventarisOptions() {
     const checkbox = document.getElementById('toggleInventaris');
     const options = document.getElementById('inventarisOptions');
@@ -229,5 +293,25 @@ function loadReplacementInventaris(barangId) {
         })
         .catch(error => console.error('Error:', error));
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tahunInput = document.getElementById('tahun');
+    const errorMsg = document.getElementById('tahunErrorMsg');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const minTahun = parseInt('{{ date("Y") }}', 10);
+
+    tahunInput.addEventListener('input', function() {
+        const val = parseInt(this.value, 10);
+        if (this.value !== "" && val < minTahun) {
+            this.classList.add('is-invalid');
+            errorMsg.style.display = 'block';
+            submitBtn.disabled = true;
+        } else {
+            this.classList.remove('is-invalid');
+            errorMsg.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    });
+});
 </script>
 @endsection

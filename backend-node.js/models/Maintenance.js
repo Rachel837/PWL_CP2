@@ -22,6 +22,14 @@ const Maintenance = sequelize.define('Maintenance', {
       type: DataTypes.STRING, 
       allowNull: true
     },
+    foto_before: {
+      type: DataTypes.STRING, 
+      allowNull: true
+    },
+    foto_after: {
+      type: DataTypes.STRING, 
+      allowNull: true
+    },
     inventaris_id: {
       type: DataTypes.INTEGER, 
       allowNull: true

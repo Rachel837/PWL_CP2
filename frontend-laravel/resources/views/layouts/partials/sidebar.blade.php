@@ -71,12 +71,12 @@
         @endif
 
         <!-- ================= OPERASIONAL LAB SECTION ================= -->
-        @if(Session::has('user') && $role === 'staf laboratorium')
+        @if(Session::has('user') && in_array($role, ['staf administrasi', 'staf laboratorium']))
             <li class="px-4 py-2"><small class="nav-text text-uppercase font-semibold tracking-wider opacity-75">Operasional Lab</small></li>
             <li>
                 <a class="nav-link {{ request()->is('maintenance*') ? 'active' : '' }}" href="{{ route('maintenance.index') }}">
                     <i class="ti ti-tool"></i>
-                    <span class="nav-text">Log Maintenance</span>
+                    <span class="nav-text">Laporan Maintenance</span>
                 </a>
             </li>
         @endif

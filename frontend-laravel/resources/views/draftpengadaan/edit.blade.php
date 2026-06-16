@@ -84,7 +84,19 @@
 
                     <input type="hidden" name="draft_pengadaan_id" value="{{ $draftPengadaan['id'] }}">
 
-                    <div class="mb-3">
+                    <div class="mb-4 pb-3 border-bottom">
+                        <label class="form-label fw-semibold d-block">Sumber Barang</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="is_new_barang" id="radioBarangAda" value="0" checked onchange="toggleBarangSource()" {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}>
+                            <label class="form-check-label" for="radioBarangAda">Pilih Barang Tersedia</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="is_new_barang" id="radioBarangBaru" value="1" onchange="toggleBarangSource()" {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}>
+                            <label class="form-check-label" for="radioBarangBaru">Input Barang Baru</label>
+                        </div>
+                    </div>
+
+                    <div id="divBarangAda" class="mb-3">
                         <label class="form-label fw-semibold" for="barang_id">
                             Pilih Barang <span class="text-danger">*</span>
                         </label>
@@ -106,6 +118,33 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div id="divBarangBaru" class="mb-3 p-3 bg-light rounded border" style="display: none;">
+                        <h6 class="fw-bold mb-3">Detail Barang Baru</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="nama_barang_baru">Nama Barang Baru <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nama_barang_baru" name="nama_barang_baru" placeholder="Contoh: Router WiFi" {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="kategori_barang_id">Kategori <span class="text-danger">*</span></label>
+                                <select class="form-select" id="kategori_barang_id" name="kategori_barang_id" {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}>
+                                    <option value="">-- Pilih Kategori --</option>
+                                    @foreach($kategoriBarang as $kat)
+                                        <option value="{{ $kat['id'] }}">{{ $kat['nama_kategori'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="spesifikasi_baru">Spesifikasi <span class="text-muted fw-normal">(Opsional)</span></label>
+                                <input type="text" class="form-control" id="spesifikasi_baru" name="spesifikasi_baru" placeholder="Contoh: 5GHz, WiFi 6" {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="satuan_baru">Satuan <span class="text-muted fw-normal">(Opsional)</span></label>
+                                <input type="text" class="form-control" id="satuan_baru" name="satuan_baru" placeholder="Contoh: Unit, Buah" {{ $draftPengadaan['status'] !== 'draft' ? 'disabled' : '' }}>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -410,6 +449,24 @@
 </div>
 
 <script>
+function toggleBarangSource() {
+    const isNew = document.getElementById('radioBarangBaru').checked;
+    const divBarangAda = document.getElementById('divBarangAda');
+    const divBarangBaru = document.getElementById('divBarangBaru');
+    
+    if (isNew) {
+        divBarangAda.style.display = 'none';
+        divBarangBaru.style.display = 'block';
+        // Reset old barang selection and remove required
+        const barangSelect = document.getElementById('barang_id');
+        barangSelect.value = "";
+        barangSelect.removeAttribute('required');
+    } else {
+        divBarangAda.style.display = 'block';
+        divBarangBaru.style.display = 'none';
+        document.getElementById('barang_id').setAttribute('required', 'required');
+    }
+}
 function toggleInventarisOptions() {
     const checkbox = document.getElementById('toggleInventaris');
     const options = document.getElementById('inventarisOptions');

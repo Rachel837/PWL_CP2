@@ -102,7 +102,9 @@ Route::middleware([CheckAuth::class])->group(function () {
     // Staf Laboratorium Routes
     Route::middleware([CheckRoleStafLab::class])->group(function () {
         Route::resource('stok-bhp', StokBhpController::class)->except(['index']);
-        Route::resource('maintenance', MaintenanceController::class);
     });
+    
+    // Maintenance Routes (Access control handled in controller)
+    Route::resource('maintenance', MaintenanceController::class);
 });
 

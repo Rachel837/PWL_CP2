@@ -68,7 +68,7 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
-        const { tanggal_maintenance, kondisi_sebelum, kondisi_sesudah, tindakan, catatan, inventaris_id, users_id, bhps } = req.body;
+        const { tanggal_maintenance, kondisi_sebelum, kondisi_sesudah, tindakan, catatan, inventaris_id, users_id, bhps, foto_before, foto_after } = req.body;
         
         if (!inventaris_id || !users_id || !kondisi_sesudah) {
             return res.status(400).json({ status: 'error', message: 'Field inventaris_id, users_id, dan kondisi_sesudah diperlukan.' });
@@ -85,6 +85,8 @@ exports.create = async (req, res) => {
             kondisi_sesudah,
             tindakan: tindakan || '',
             catatan: catatan || '',
+            foto_before: foto_before || null,
+            foto_after: foto_after || null,
             inventaris_id,
             users_id
         });
