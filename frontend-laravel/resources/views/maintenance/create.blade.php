@@ -24,13 +24,26 @@
                 <form id="maintenanceForm" action="{{ route('maintenance.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
+                    <!-- Filter Ruangan -->
+                    <div class="mb-3">
+                        <label for="filter_ruangan" class="form-label font-weight-bold">Filter Ruangan</label>
+                        <select id="filter_ruangan" class="form-select">
+                            <option value="">-- Semua Ruangan --</option>
+                            @if(isset($ruanganList) && is_array($ruanganList))
+                                @foreach($ruanganList as $ruangan)
+                                    <option value="{{ $ruangan['id'] }}">{{ $ruangan['nama_ruangan'] }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+
                     <!-- 1. Pilihan Inventaris -->
                     <div class="mb-3">
                         <label for="inventaris_id" class="form-label font-weight-bold">Pilih Barang Inventaris <span class="text-danger">*</span></label>
                         <select name="inventaris_id" id="inventaris_id" class="form-select" required>
                             <option value="" disabled selected>-- Pilih Barang Inventaris --</option>
                             @foreach($inventarisList as $item)
-                                <option value="{{ $item['id'] }}" data-kondisi="{{ $item['kondisi'] }}" {{ old('inventaris_id') == $item['id'] ? 'selected' : '' }}>
+                                <option value="{{ $item['id'] }}" data-kondisi="{{ $item['kondisi'] }}" data-ruangan-id="{{ $item['ruangan']['id'] ?? '' }}" {{ old('inventaris_id') == $item['id'] ? 'selected' : '' }}>
                                     {{ $item['barang']['nama_barang'] ?? '' }} ({{ $item['kode_inventaris'] ?? '-' }}) - Ruangan: {{ $item['ruangan']['nama_ruangan'] ?? 'Tanpa Ruangan' }}
                                 </option>
                             @endforeach
@@ -149,14 +162,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const inventarisSelect = document.getElementById('inventaris_id');
     const kondisiSebelumDisplay = document.getElementById('kondisi_sebelum_display');
     const kondisiSebelumInput = document.getElementById('kondisi_sebelum');
+    const filterRuanganSelect = document.getElementById('filter_ruangan');
+    
+    // Simpan semua opsi asli inventaris
+    const originalInventarisOptions = Array.from(inventarisSelect.options);
 
     // Update kondisi sebelum ketika barang inventaris dipilih
     inventarisSelect.addEventListener('change', function() {
+        if (inventarisSelect.selectedIndex === -1 || inventarisSelect.value === "") return;
         const selectedOption = inventarisSelect.options[inventarisSelect.selectedIndex];
         const kondisi = selectedOption.getAttribute('data-kondisi');
         kondisiSebelumDisplay.value = kondisi ? kondisi.toUpperCase() : '';
         kondisiSebelumInput.value = kondisi || '';
     });
+
+    // Filter inventaris berdasarkan ruangan
+    if (filterRuanganSelect) {
+        filterRuanganSelect.addEventListener('change', function() {
+            const selectedRuanganId = this.value;
+
+            // Kosongkan select
+            inventarisSelect.innerHTML = '';
+
+            // Tambahkan kembali opsi default (pertama)
+            if (originalInventarisOptions.length > 0) {
+                inventarisSelect.appendChild(originalInventarisOptions[0].cloneNode(true));
+            }
+
+            // Tambahkan opsi yang sesuai dengan ruangan
+            originalInventarisOptions.slice(1).forEach(option => {
+                const optionRuanganId = option.getAttribute('data-ruangan-id');
+                if (selectedRuanganId === "" || optionRuanganId === selectedRuanganId) {
+                    inventarisSelect.appendChild(option.cloneNode(true));
+                }
+            });
+
+            // Reset value select inventaris
+            inventarisSelect.value = "";
+            kondisiSebelumDisplay.value = "";
+            kondisiSebelumInput.value = "";
+        });
+    }
 
     // Dynamic BHP Row Management
     const addBhpRowBtn = document.getElementById('addBhpRow');

@@ -48,7 +48,11 @@ class MaintenanceController extends Controller
         $bhpResponse = Http::get("{$this->apiUrl}/stok-bhp");
         $bhpList = $bhpResponse->json('data') ?? [];
 
-        return view('maintenance.create', compact('inventarisList', 'bhpList'));
+        // Ambil data ruangan
+        $ruanganResponse = Http::get("{$this->apiUrl}/ruangan");
+        $ruanganList = $ruanganResponse->json('data') ?? [];
+
+        return view('maintenance.create', compact('inventarisList', 'bhpList', 'ruanganList'));
     }
 
     public function store(Request $request)
